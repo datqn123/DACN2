@@ -1,0 +1,11 @@
+Nếu bạn đã tạo file docker-compose.yml và Dockerfile như mình chỉ ở bài trước:
+
+Giải nén file.
+
+Mở CMD/Terminal tại thư mục đó.
+
+Chạy lệnh: mvn clean package (để tạo file .jar).
+
+Chạy lệnh: docker-compose up -d.
+
+Xong! Web chạy ở localhost:8080, Database tự động có.
