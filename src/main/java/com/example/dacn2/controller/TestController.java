@@ -1,4 +1,4 @@
-package com.example.dacn2.controller.AuthController;
+package com.example.dacn2.controller;
 
 import com.example.dacn2.utils.JWTUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,5 +26,16 @@ public class TestController {
         String id = jwtUtils.getUserNameFromJwtToken(token);
 
         return ResponseEntity.ok(email+" "+id);
+    }
+
+    @Autowired
+    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder; // Inject bộ mã hóa
+
+    // API: Sinh mã hash từ mật khẩu gốc
+    // URL: GET http://localhost:8080/api/test/hash-pass?password=123456
+    @GetMapping("/hash-pass")
+    public ResponseEntity<?> getHashPassword(@RequestParam("password") String password) {
+        String hash = passwordEncoder.encode(password);
+        return ResponseEntity.ok(hash);
     }
 }

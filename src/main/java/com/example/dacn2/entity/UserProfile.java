@@ -1,6 +1,7 @@
 package com.example.dacn2.entity;
 
 import com.example.dacn2.entity.Account;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -27,6 +28,7 @@ public class UserProfile {
     @MapsId // Bắt Hibernate copy ID của Account gán vào ID của Profile
     @JoinColumn(name = "user_id")
     @ToString.Exclude// Tên cột khóa ngoại trong SQL
+    @JsonIgnore
     private Account account;
 
     @Column(name = "full_name", nullable = false, length = 100)

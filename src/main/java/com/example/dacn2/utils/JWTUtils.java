@@ -32,7 +32,6 @@ public class JWTUtils {
     public String generaToken(Account account) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("email", account.getEmail());
-        claims.put("role", account.getRole());
 
         return Jwts.builder()
                 .setClaims(claims)
@@ -44,21 +43,9 @@ public class JWTUtils {
     }
 
     public boolean validateJwtToken(String authToken) {
-        try {
-            Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(authToken);
-            return true;
-        } catch (SignatureException e) {
-            System.out.println("LỖI: Chữ ký Token không hợp lệ (Token giả).");
-        } catch (MalformedJwtException e) {
-            System.out.println("LỖI: Chuỗi Token sai định dạng (Thiếu ký tự, thừa khoảng trắng...).");
-        } catch (ExpiredJwtException e) {
-            System.out.println("LỖI: Token đã hết hạn sử dụng.");
-        } catch (UnsupportedJwtException e) {
-            System.out.println("LỖI: Token không được hỗ trợ.");
-        } catch (IllegalArgumentException e) {
-            System.out.println("LỖI: Chuỗi claims rỗng.");
-        }
-        return false;
+        // Chỉ cần dòng này, nếu lỗi thư viện Jwts sẽ tự ném Exception cụ thể
+        Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(authToken);
+        return true;
     }
 
     public String getUserNameFromJwtToken(String token) {
@@ -72,5 +59,10 @@ public class JWTUtils {
                 .parseClaimsJws(token)
                 .getBody()
                 .get("email", String.class);
+    }
+
+    public Date getExpirationFromToken(String token) {
+        return Jwts.parserBuilder().setSigningKey(getSigningKey()).build()
+                .parseClaimsJws(token).getBody().getExpiration();
     }
 }

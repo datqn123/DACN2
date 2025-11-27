@@ -2,6 +2,7 @@ package com.example.dacn2.exception;
 
 import com.example.dacn2.dto.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -31,4 +32,15 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.badRequest().body(apiResponse);
     }
+    // Bắt lỗi valid
+    @ExceptionHandler(value = MethodArgumentNotValidException.class)
+    ResponseEntity<ApiResponse> handlingValidation(MethodArgumentNotValidException exception) {
+        String enumKey = exception.getFieldError().getDefaultMessage();
+
+        ApiResponse apiResponse = new ApiResponse();
+        apiResponse.setCode(1001);
+        apiResponse.setMessage(enumKey);
+        return ResponseEntity.badRequest().body(apiResponse);
+    }
+
 }

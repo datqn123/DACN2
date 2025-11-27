@@ -1,13 +1,19 @@
 package com.example.dacn2.Config;
 
+import com.example.dacn2.dto.response.ApiResponse;
 import com.example.dacn2.repository.InvalidatedTokenRepository;
 import com.example.dacn2.Config.CustomUserDetailsService;
 import com.example.dacn2.utils.JWTUtils;
+import com.fasterxml.jackson.databind.ObjectMapper; // Import thư viện JSON
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,10 +31,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private JWTUtils jwtUtils;
 
     @Autowired
-    private CustomUserDetailsService customUserDetailsService; // Service bạn vừa tạo ở Bước 1
+    private CustomUserDetailsService customUserDetailsService;
 
     @Autowired
-    private InvalidatedTokenRepository invalidatedTokenRepository; // Repository kiểm tra Blacklist
+    private InvalidatedTokenRepository invalidatedTokenRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -36,54 +42,69 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
 
         try {
-            // 1. Lấy token từ Header
+            // 1. Lấy token
             String token = getTokenFromRequest(request);
 
-            // 2. Kiểm tra xem Token có tồn tại và Hợp lệ không
-            if (token != null && jwtUtils.validateJwtToken(token)) {
+            if (token != null) {
+                // 2. Validate Token (Hàm này giờ sẽ ném Exception nếu lỗi)
+                jwtUtils.validateJwtToken(token);
 
-                // --- KIỂM TRA BLACKLIST (LOGOUT) ---
-                // Nếu token nằm trong bảng invalidated_tokens thì chặn luôn
+                // 3. Check Blacklist
                 if (invalidatedTokenRepository.existsById(token)) {
-                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token has been logged out (Blacklisted)");
-                    return; // Dừng request tại đây
+                    // Tự ném lỗi để xuống catch xử lý chung
+                    throw new RuntimeException("Token đã đăng xuất (Blacklisted)");
                 }
 
-                // 3. Lấy Email từ Token
+                // 4. Lấy thông tin User
                 String email = jwtUtils.getEmailFromToken(token);
-
-                // 4. Load thông tin User từ Database
                 UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
 
-                // 5. Tạo đối tượng Authentication
+                // 5. Set Authentication
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities()
+                        userDetails, null, userDetails.getAuthorities()
                 );
-
-                // Set thông tin request (IP, Session ID...) vào authentication
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                // 6. LƯU VÀO SECURITY CONTEXT (Bước quan trọng nhất)
-                // Spring Security sẽ biết user này đã đăng nhập thành công
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
-        } catch (Exception e) {
-            // Nếu có lỗi (Token sai, hết hạn...), chỉ cần log ra, không throw exception để filter chain chạy tiếp
-            // (Spring Security sẽ tự xử lý lỗi 401 ở bước sau nếu endpoint yêu cầu quyền)
-            logger.error("Cannot set user authentication: {}", e);
-        }
 
-        // 7. Cho phép request đi tiếp sang các Filter khác hoặc vào Controller
-        filterChain.doFilter(request, response);
+            // Nếu mọi thứ êm đẹp, cho đi tiếp
+            filterChain.doFilter(request, response);
+
+        } catch (ExpiredJwtException e) {
+            // Bắt lỗi Token hết hạn
+            sendErrorResponse(response, 1001, "Token đã hết hạn (Expired)");
+        } catch (SignatureException | MalformedJwtException e) {
+            // Bắt lỗi Token sai chữ ký hoặc sai định dạng
+            sendErrorResponse(response, 1002, "Token không hợp lệ (Invalid Signature/Format)");
+        } catch (Exception e) {
+            // Bắt các lỗi còn lại (Ví dụ: Blacklist, User không tìm thấy...)
+            sendErrorResponse(response, 9999, "Lỗi xác thực: " + e.getMessage());
+        }
     }
 
-    // Hàm phụ trợ để lấy chuỗi token sạch từ Header
+    // Hàm phụ trợ để viết JSON trả về Client ngay lập tức
+    private void sendErrorResponse(HttpServletResponse response, int code, String message) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // Trả về 401
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
+
+        // Tạo đối tượng ApiResponse chuẩn của bạn
+        ApiResponse<Object> apiResponse = ApiResponse.builder()
+                .code(code)
+                .message(message)
+                .build();
+
+        // Dùng Jackson để biến Object thành chuỗi JSON và ghi vào response
+        ObjectMapper objectMapper = new ObjectMapper();
+        response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
+
+        // Quan trọng: Không gọi filterChain.doFilter() nữa để chặn request tại đây
+    }
+
     private String getTokenFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7); // Cắt bỏ 7 ký tự đầu ("Bearer ")
+            return bearerToken.substring(7);
         }
         return null;
     }
