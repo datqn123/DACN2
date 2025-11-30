@@ -1,7 +1,7 @@
 package com.example.dacn2.service;
 
-import com.example.dacn2.dto.request.PermissionRequest;
-import com.example.dacn2.entity.Permission;
+import com.example.dacn2.dto.request.RoleReuest.PermissionRequest;
+import com.example.dacn2.entity.Auth.Permission;
 import com.example.dacn2.repository.PermissionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

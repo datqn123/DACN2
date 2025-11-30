@@ -6,9 +6,9 @@ import com.example.dacn2.dto.request.RefreshTokenRequest;
 import com.example.dacn2.dto.request.RegisterRequest;
 import com.example.dacn2.dto.response.ApiResponse;
 import com.example.dacn2.dto.response.LoginReponse;
-import com.example.dacn2.entity.Account;
+import com.example.dacn2.entity.User.Account;
+import com.example.dacn2.service.UserService.Auth.LoginService;
 import com.example.dacn2.service.UserService.Auth.RefreshTokenService;
-import com.example.dacn2.service.UserServiceInterface.Auth.LoginServiceInterface;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 public class AuthController {
     @Autowired
-    private LoginServiceInterface loginService;
+    private LoginService loginService;
     @Autowired
     RefreshTokenService refreshTokenService;
 

@@ -2,14 +2,12 @@ package com.example.dacn2.service.UserService.Auth;
 
 import com.example.dacn2.dto.request.RefreshTokenRequest;
 import com.example.dacn2.dto.response.LoginReponse;
-import com.example.dacn2.entity.Account;
-import com.example.dacn2.entity.RefreshToken;
+import com.example.dacn2.entity.User.Account;
+import com.example.dacn2.entity.Auth.RefreshToken;
 import com.example.dacn2.repository.AccountRepositoryInterface;
 import com.example.dacn2.repository.RefreshTokenRepository;
 import com.example.dacn2.utils.JWTUtils;
-import io.jsonwebtoken.Jwt;
 import jakarta.transaction.Transactional;
-import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -44,7 +42,7 @@ public class RefreshTokenService {
         return refreshTokenRepository.save(refreshToken);
     }
 
-    public RefreshToken verifyExpiration(com.example.dacn2.entity.RefreshToken token) {
+    public RefreshToken verifyExpiration(RefreshToken token) {
         if (token.getExpiryDate().compareTo(Instant.now()) < 0) {
             refreshTokenRepository.delete(token); // Xóa khỏi DB
             throw new RuntimeException("Refresh token đã hết hạn. Vui lòng đăng nhập lại!");

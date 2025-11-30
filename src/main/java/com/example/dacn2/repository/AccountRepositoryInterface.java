@@ -1,6 +1,6 @@
 package com.example.dacn2.repository;
 
-import com.example.dacn2.entity.Account;
+import com.example.dacn2.entity.User.Account;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

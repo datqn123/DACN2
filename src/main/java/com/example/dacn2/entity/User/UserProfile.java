@@ -1,7 +1,7 @@
-package com.example.dacn2.entity;
+package com.example.dacn2.entity.User;
 
-import com.example.dacn2.entity.Account;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -29,6 +29,7 @@ public class UserProfile {
     @JoinColumn(name = "user_id")
     @ToString.Exclude// Tên cột khóa ngoại trong SQL
     @JsonIgnore
+    @Schema(hidden = true)
     private Account account;
 
     @Column(name = "full_name", nullable = false, length = 100)

@@ -1,8 +1,8 @@
 package com.example.dacn2.controller;
 
-import com.example.dacn2.dto.request.AssignPermissionRequest;
+import com.example.dacn2.dto.request.RoleReuest.AssignPermissionRequest;
 import com.example.dacn2.dto.response.ApiResponse;
-import com.example.dacn2.entity.Role;
+import com.example.dacn2.entity.Auth.Role;
 import com.example.dacn2.service.UserServiceInterface.RoleService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

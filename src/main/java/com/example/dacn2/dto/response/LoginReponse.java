@@ -1,6 +1,6 @@
 package com.example.dacn2.dto.response;
 
-import com.example.dacn2.entity.Role;
+import com.example.dacn2.entity.Auth.Role;
 import lombok.Data;
 
 import java.util.Set;

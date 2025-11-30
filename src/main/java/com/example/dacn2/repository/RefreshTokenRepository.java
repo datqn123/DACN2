@@ -1,7 +1,7 @@
 package com.example.dacn2.repository;
 
-import com.example.dacn2.entity.RefreshToken;
-import com.example.dacn2.entity.Account;
+import com.example.dacn2.entity.Auth.RefreshToken;
+import com.example.dacn2.entity.User.Account;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;

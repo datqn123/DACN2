@@ -1,13 +1,8 @@
 package com.example.dacn2.utils;
 
-import com.example.dacn2.entity.Account;
-import io.jsonwebtoken.ExpiredJwtException;
+import com.example.dacn2.entity.User.Account;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.security.SignatureException;
-import lombok.experimental.UtilityClass;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 

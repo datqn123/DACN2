@@ -3,12 +3,15 @@ package com.example.dacn2.service.UserService.Auth;
 import com.example.dacn2.dto.request.LoginRequest;
 import com.example.dacn2.dto.request.RegisterRequest;
 import com.example.dacn2.dto.response.LoginReponse;
-import com.example.dacn2.entity.*;
+import com.example.dacn2.entity.Auth.InvalidatedToken;
+import com.example.dacn2.entity.Auth.RefreshToken;
+import com.example.dacn2.entity.Auth.Role;
+import com.example.dacn2.entity.User.Account;
+import com.example.dacn2.entity.User.UserProfile;
 import com.example.dacn2.repository.AccountRepositoryInterface;
 import com.example.dacn2.repository.InvalidatedTokenRepository;
 import com.example.dacn2.repository.RefreshTokenRepository;
 import com.example.dacn2.repository.RoleRepository;
-import com.example.dacn2.service.UserServiceInterface.Auth.LoginServiceInterface;
 import com.example.dacn2.utils.JWTUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +23,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Service
-public class LoginService implements LoginServiceInterface {
+public class LoginService {
     @Autowired
     AccountRepositoryInterface accountRepositoryInterface;
     @Autowired
@@ -36,7 +39,6 @@ public class LoginService implements LoginServiceInterface {
     @Autowired
     InvalidatedTokenRepository invalidatedTokenRepository;
 
-    @Override
     @Transactional
     public LoginReponse login(LoginRequest request) {
         String cleanEmail = request.getEmail().trim();
@@ -65,7 +67,6 @@ public class LoginService implements LoginServiceInterface {
         return response;
     }
 
-    @Override
     public Account registerAccount(RegisterRequest request) {
         if(!request.getPassword().equals(request.getConfirmPassword())) {
             throw new RuntimeException("Mật khẩu koong khop");
@@ -92,7 +93,6 @@ public class LoginService implements LoginServiceInterface {
         return accountRepositoryInterface.save(account);
     }
 
-    @Override
     @Transactional
     public void logout(String refreshToken, String accessToken) {
         // 1. Xóa Refresh Token (Logic cũ)

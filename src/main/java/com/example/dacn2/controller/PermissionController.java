@@ -1,8 +1,8 @@
 package com.example.dacn2.controller;
 
-import com.example.dacn2.dto.request.PermissionRequest;
+import com.example.dacn2.dto.request.RoleReuest.PermissionRequest;
 import com.example.dacn2.dto.response.ApiResponse;
-import com.example.dacn2.entity.Permission;
+import com.example.dacn2.entity.Auth.Permission;
 import com.example.dacn2.service.PermissionService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;

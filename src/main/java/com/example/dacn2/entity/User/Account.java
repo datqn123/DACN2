@@ -1,6 +1,8 @@
-package com.example.dacn2.entity;
+package com.example.dacn2.entity.User;
 
+import com.example.dacn2.entity.Auth.Role;
 import com.fasterxml.jackson.annotation.JsonIgnore; // Import cái này
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.*; // Dùng Getter/Setter thay vì Data để an toàn hơn cho Set
 import org.hibernate.annotations.CreationTimestamp;
@@ -42,6 +44,7 @@ public class Account {
     @OneToOne(mappedBy = "account", cascade = CascadeType.ALL)
     @ToString.Exclude
     @JsonIgnore // Chặn vòng lặp vô tận khi in JSON
+    @Schema(hidden = true)
     private UserProfile userProfile;
 
     // Quan hệ N-N với Role (Hệ thống mới)

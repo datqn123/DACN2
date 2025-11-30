@@ -1,4 +1,4 @@
-package com.example.dacn2.entity;
+package com.example.dacn2.entity.Auth;
 
 import jakarta.persistence.*;
 import lombok.Data;

@@ -1,4 +1,4 @@
-package com.example.dacn2.dto.request;
+package com.example.dacn2.dto.request.RoleReuest;
 
 import lombok.Data;
 

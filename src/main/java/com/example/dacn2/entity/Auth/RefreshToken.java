@@ -1,5 +1,6 @@
-package com.example.dacn2.entity;
+package com.example.dacn2.entity.Auth;
 
+import com.example.dacn2.entity.User.Account;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.Instant;

@@ -1,7 +1,7 @@
 package com.example.dacn2.service.UserServiceInterface;
 
-import com.example.dacn2.entity.Permission;
-import com.example.dacn2.entity.Role;
+import com.example.dacn2.entity.Auth.Permission;
+import com.example.dacn2.entity.Auth.Role;
 import com.example.dacn2.repository.PermissionRepository;
 import com.example.dacn2.repository.RoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
