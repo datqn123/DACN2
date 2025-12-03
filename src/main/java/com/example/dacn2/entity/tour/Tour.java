@@ -22,6 +22,8 @@ public class Tour extends BaseEntity {
     private String slug;
 
     private String duration;
+    private Double priceAdult;
+    private Double priceChild;
     private Double price;
     private String thumbnail;
 

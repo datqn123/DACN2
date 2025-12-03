@@ -1,8 +1,7 @@
 package com.example.dacn2.Config;
 
-import com.example.dacn2.dto.response.ApiResponse;
-import com.example.dacn2.repository.InvalidatedTokenRepository;
-import com.example.dacn2.Config.CustomUserDetailsService;
+import com.example.dacn2.dto.ApiResponse;
+import com.example.dacn2.repository.auth.InvalidatedTokenRepository;
 import com.example.dacn2.utils.JWTUtils;
 import com.fasterxml.jackson.databind.ObjectMapper; // Import thư viện JSON
 import io.jsonwebtoken.ExpiredJwtException;

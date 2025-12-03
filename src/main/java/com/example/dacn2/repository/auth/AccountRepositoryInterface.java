@@ -1,4 +1,4 @@
-package com.example.dacn2.repository;
+package com.example.dacn2.repository.auth;
 
 import com.example.dacn2.entity.User.Account;
 import org.springframework.data.jpa.repository.JpaRepository;

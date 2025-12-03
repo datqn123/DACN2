@@ -1,7 +1,7 @@
 package com.example.dacn2.Config;
 
 import com.example.dacn2.entity.User.Account;
-import com.example.dacn2.repository.AccountRepositoryInterface;
+import com.example.dacn2.repository.auth.AccountRepositoryInterface;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;

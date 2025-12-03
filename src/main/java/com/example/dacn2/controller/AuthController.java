@@ -1,10 +1,10 @@
 package com.example.dacn2.controller;
 
-import com.example.dacn2.dto.request.LoginRequest;
-import com.example.dacn2.dto.request.LogoutRequest;
+import com.example.dacn2.dto.request.auth.LoginRequest;
+import com.example.dacn2.dto.request.auth.LogoutRequest;
 import com.example.dacn2.dto.request.RefreshTokenRequest;
-import com.example.dacn2.dto.request.RegisterRequest;
-import com.example.dacn2.dto.response.ApiResponse;
+import com.example.dacn2.dto.request.auth.RegisterRequest;
+import com.example.dacn2.dto.ApiResponse;
 import com.example.dacn2.dto.response.LoginReponse;
 import com.example.dacn2.entity.User.Account;
 import com.example.dacn2.service.UserService.Auth.LoginService;

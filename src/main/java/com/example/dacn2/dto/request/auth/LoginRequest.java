@@ -1,10 +1,9 @@
-package com.example.dacn2.dto.request;
+package com.example.dacn2.dto.request.auth;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-import org.aspectj.bridge.IMessage;
 
 @Data
 public class LoginRequest {

@@ -1,4 +1,4 @@
-package com.example.dacn2.dto.response;
+package com.example.dacn2.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;

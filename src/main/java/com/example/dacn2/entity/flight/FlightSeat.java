@@ -1,6 +1,7 @@
 package com.example.dacn2.entity.flight;
 
 import com.example.dacn2.entity.BaseEntity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -27,5 +28,6 @@ public class FlightSeat extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "flight_id")
+    @JsonIgnore
     private Flight flight;
 }

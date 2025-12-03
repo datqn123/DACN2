@@ -1,17 +1,17 @@
 package com.example.dacn2.service.UserService.Auth;
 
-import com.example.dacn2.dto.request.LoginRequest;
-import com.example.dacn2.dto.request.RegisterRequest;
+import com.example.dacn2.dto.request.auth.LoginRequest;
+import com.example.dacn2.dto.request.auth.RegisterRequest;
 import com.example.dacn2.dto.response.LoginReponse;
 import com.example.dacn2.entity.Auth.InvalidatedToken;
 import com.example.dacn2.entity.Auth.RefreshToken;
 import com.example.dacn2.entity.Auth.Role;
 import com.example.dacn2.entity.User.Account;
 import com.example.dacn2.entity.User.UserProfile;
-import com.example.dacn2.repository.AccountRepositoryInterface;
-import com.example.dacn2.repository.InvalidatedTokenRepository;
-import com.example.dacn2.repository.RefreshTokenRepository;
-import com.example.dacn2.repository.RoleRepository;
+import com.example.dacn2.repository.auth.AccountRepositoryInterface;
+import com.example.dacn2.repository.auth.InvalidatedTokenRepository;
+import com.example.dacn2.repository.auth.RefreshTokenRepository;
+import com.example.dacn2.repository.auth.RoleRepository;
 import com.example.dacn2.utils.JWTUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;

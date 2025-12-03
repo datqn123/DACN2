@@ -1,6 +1,6 @@
 package com.example.dacn2.exception;
 
-import com.example.dacn2.dto.response.ApiResponse;
+import com.example.dacn2.dto.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
