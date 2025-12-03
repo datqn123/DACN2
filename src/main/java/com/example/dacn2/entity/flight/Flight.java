@@ -39,6 +39,7 @@ public class Flight extends BaseEntity {
     // Thời gian bay (Tính sẵn để hiển thị cho nhanh: "1h 30m")
     private String duration;
 
+    private String image;
     // Một chuyến bay có nhiều hạng vé (Economy, Business...)
     @OneToMany(mappedBy = "flight", cascade = CascadeType.ALL)
     private List<FlightSeat> flightSeats;

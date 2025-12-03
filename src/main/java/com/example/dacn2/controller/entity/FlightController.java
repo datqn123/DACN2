@@ -1,4 +1,4 @@
-package com.example.dacn2.controller;
+package com.example.dacn2.controller.entity;
 
 import com.example.dacn2.dto.ApiResponse;
 import com.example.dacn2.dto.request.flight.FlightRequest;
@@ -6,7 +6,6 @@ import com.example.dacn2.entity.flight.Flight;
 import com.example.dacn2.service.entity.FlightService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;

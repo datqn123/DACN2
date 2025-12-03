@@ -1,10 +1,11 @@
-package com.example.dacn2.service;
+package com.example.dacn2.service.entity;
 
 import com.example.dacn2.dto.request.tour.*;
 import com.example.dacn2.entity.*;
 import com.example.dacn2.entity.tour.*;
 import com.example.dacn2.repository.location.LocationInterfaceRepository;
 import com.example.dacn2.repository.tour.TourRepository;
+import com.example.dacn2.service.FileUploadService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

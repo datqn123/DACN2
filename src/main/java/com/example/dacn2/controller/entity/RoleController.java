@@ -1,4 +1,4 @@
-package com.example.dacn2.controller;
+package com.example.dacn2.controller.entity;
 
 import com.example.dacn2.dto.request.RoleReuest.AssignPermissionRequest;
 import com.example.dacn2.dto.ApiResponse;

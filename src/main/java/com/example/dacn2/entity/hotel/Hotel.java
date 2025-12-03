@@ -66,7 +66,6 @@ public class Hotel extends BaseEntity { // Kế thừa id, createdAt, updatedAt 
     @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<HotelImage> images;
 
-    // 5. Danh sách phòng (Sẽ làm ở bước sau)
-    // @OneToMany(mappedBy = "hotel")
-    // private List<Room> rooms;
+     @OneToMany(mappedBy = "hotel")
+     private List<Room> rooms;
 }

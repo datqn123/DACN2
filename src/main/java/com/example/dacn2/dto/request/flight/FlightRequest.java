@@ -14,6 +14,7 @@ public class FlightRequest {
     private LocalDateTime departureTime; // Định dạng JSON: "2025-12-20T08:00:00"
     private LocalDateTime arrivalTime;
 
+    private String image;
     // Danh sách các hạng vé của chuyến bay này
     private List<FlightSeatRequest> seats;
 }

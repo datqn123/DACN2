@@ -14,9 +14,9 @@ public class LocationRequest {
 
     private String description;
 
-    private String thumbnail; // Link ảnh
+    private String thumbnail;
 
-    private LocationType type; // Enum: COUNTRY, PROVINCE...
+    private LocationType type;
 
-    private Long parentId; // ID của địa điểm cha (Nếu có)
+    private Long parentId;
 }

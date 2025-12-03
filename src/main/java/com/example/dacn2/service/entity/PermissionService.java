@@ -1,4 +1,4 @@
-package com.example.dacn2.service;
+package com.example.dacn2.service.entity;
 
 import com.example.dacn2.dto.request.RoleReuest.PermissionRequest;
 import com.example.dacn2.entity.Auth.Permission;

@@ -1,4 +1,4 @@
-package com.example.dacn2.service;
+package com.example.dacn2.service.entity;
 
 import com.example.dacn2.dto.request.location.LocationRequest;
 import com.example.dacn2.entity.Location;
@@ -85,4 +85,6 @@ public class LocationService {
             location.setParent(null); // Nếu không gửi parentId thì là cấp cao nhất
         }
     }
+
+
 }
