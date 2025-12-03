@@ -3,7 +3,7 @@ package com.example.dacn2.controller;
 import com.example.dacn2.dto.request.RoleReuest.PermissionRequest;
 import com.example.dacn2.dto.ApiResponse;
 import com.example.dacn2.entity.Auth.Permission;
-import com.example.dacn2.service.PermissionService;
+import com.example.dacn2.service.entity.PermissionService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

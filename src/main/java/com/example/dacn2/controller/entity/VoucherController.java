@@ -3,7 +3,7 @@ package com.example.dacn2.controller;
 import com.example.dacn2.dto.ApiResponse;
 import com.example.dacn2.dto.request.voucher.VoucherRequest;
 import com.example.dacn2.entity.voucher.Voucher;
-import com.example.dacn2.service.VoucherService;
+import com.example.dacn2.service.entity.VoucherService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.beans.factory.annotation.Autowired;

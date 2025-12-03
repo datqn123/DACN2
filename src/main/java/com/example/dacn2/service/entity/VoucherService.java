@@ -6,7 +6,6 @@ import com.example.dacn2.entity.flight.Flight;
 import com.example.dacn2.entity.hotel.Hotel;
 import com.example.dacn2.entity.tour.Tour;
 import com.example.dacn2.entity.voucher.Voucher;
-import com.example.dacn2.repository.*;
 import com.example.dacn2.repository.flight.FlightRepository;
 import com.example.dacn2.repository.hotel.HotelRepository;
 import com.example.dacn2.repository.tour.TourRepository;

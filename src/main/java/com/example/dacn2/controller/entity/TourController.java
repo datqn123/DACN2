@@ -3,7 +3,7 @@ package com.example.dacn2.controller;
 import com.example.dacn2.dto.ApiResponse;
 import com.example.dacn2.dto.request.tour.TourRequest;
 import com.example.dacn2.entity.tour.Tour;
-import com.example.dacn2.service.TourService;
+import com.example.dacn2.service.entity.TourService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule; // Import cái này để parse ngày tháng
 import org.springframework.beans.factory.annotation.Autowired;

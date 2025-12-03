@@ -3,7 +3,7 @@ package com.example.dacn2.controller;
 import com.example.dacn2.dto.ApiResponse;
 import com.example.dacn2.dto.request.hotel.HotelRequest;
 import com.example.dacn2.entity.hotel.Hotel;
-import com.example.dacn2.service.HotelService;
+import com.example.dacn2.service.entity.HotelService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;

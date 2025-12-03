@@ -3,7 +3,7 @@ package com.example.dacn2.controller;
 import com.example.dacn2.dto.ApiResponse;
 import com.example.dacn2.dto.request.hotel.RoomRequest;
 import com.example.dacn2.entity.hotel.Room;
-import com.example.dacn2.service.RoomService;
+import com.example.dacn2.service.entity.RoomService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;

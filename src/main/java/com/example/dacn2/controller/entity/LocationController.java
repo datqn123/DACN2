@@ -3,7 +3,7 @@ package com.example.dacn2.controller;
 import com.example.dacn2.dto.ApiResponse;
 import com.example.dacn2.dto.request.location.LocationRequest;
 import com.example.dacn2.entity.Location;
-import com.example.dacn2.service.LocationService;
+import com.example.dacn2.service.entity.LocationService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
