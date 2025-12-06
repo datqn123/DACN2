@@ -27,4 +27,6 @@ public class HotelRequest {
     private List<Long> amenityIds; // Danh sách ID các tiện nghi (VD: [1, 2, 5])
 
     private List<String> imageUrls; // Danh sách link ảnh (VD: ["link1.jpg", "link2.jpg"])
+
+    private List<String> viewTypes; // Danh sách view (VD: ["OCEAN_VIEW", "CITY_VIEW"])
 }

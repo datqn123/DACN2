@@ -1,10 +1,11 @@
-package com.example.dacn2.service.entity;
+package com.example.dacn2.service.hotel_service;
 
 import com.example.dacn2.dto.request.hotel.HotelRequest;
-import com.example.dacn2.entity.*;
-import com.example.dacn2.entity.HotelImage;
+import com.example.dacn2.entity.hotel.HotelImage;
+import com.example.dacn2.entity.Location;
 import com.example.dacn2.entity.hotel.Amenity;
 import com.example.dacn2.entity.hotel.Hotel;
+import com.example.dacn2.entity.hotel.HotelView;
 import com.example.dacn2.repository.hotel.AmenityRepository;
 import com.example.dacn2.repository.hotel.HotelRepository;
 import com.example.dacn2.repository.location.LocationInterfaceRepository; // Hoặc LocationRepository tùy tên bạn đặt
@@ -18,14 +19,19 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class HotelService {
 
-    @Autowired private HotelRepository hotelRepository;
-    @Autowired private LocationInterfaceRepository locationRepository;
-    @Autowired private AmenityRepository amenityRepository;
-    @Autowired private FileUploadService fileUploadService;
+    @Autowired
+    private HotelRepository hotelRepository;
+    @Autowired
+    private LocationInterfaceRepository locationRepository;
+    @Autowired
+    private AmenityRepository amenityRepository;
+    @Autowired
+    private FileUploadService fileUploadService;
 
     // 1. Lấy tất cả
     public List<Hotel> getAll() {
@@ -99,6 +105,17 @@ public class HotelService {
         hotel.setCheckOutTime(request.getCheckOutTime());
         hotel.setContactPhone(request.getContactPhone());
         hotel.setContactEmail(request.getContactEmail());
+        if (request.getViewTypes() != null) {
+            Set<HotelView> views = new HashSet<>();
+            for (String viewStr : request.getViewTypes()) {
+                try {
+                    views.add(HotelView.valueOf(viewStr));
+                } catch (IllegalArgumentException e) {
+                    // Bỏ qua giá trị không hợp lệ
+                }
+            }
+            hotel.setViews(views);
+        }
 
         // Gán Location
         if (request.getLocationId() != null) {

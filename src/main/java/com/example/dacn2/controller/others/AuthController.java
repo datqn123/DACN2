@@ -1,4 +1,4 @@
-package com.example.dacn2.controller;
+package com.example.dacn2.controller.others;
 
 import com.example.dacn2.dto.request.auth.LoginRequest;
 import com.example.dacn2.dto.request.auth.LogoutRequest;
@@ -45,7 +45,7 @@ public class AuthController {
     }
 
     @PostMapping("/refresh-token")
-    public ApiResponse<LoginReponse> refreshToken(@RequestBody RefreshTokenRequest request){
+    public ApiResponse<LoginReponse> refreshToken(@RequestBody RefreshTokenRequest request) {
         LoginReponse result = refreshTokenService.refreshToken(request);
         return ApiResponse.<LoginReponse>builder()
                 .result(result)
@@ -56,8 +56,7 @@ public class AuthController {
     @PostMapping("/logout")
     public ApiResponse<Void> logout(
             @RequestBody LogoutRequest request,
-            @RequestHeader("Authorization") String authHeader
-    ) {
+            @RequestHeader("Authorization") String authHeader) {
         // Cắt bỏ chữ "Bearer " để lấy chuỗi Access Token trần
         String accessToken = "";
         if (authHeader != null && authHeader.startsWith("Bearer ")) {

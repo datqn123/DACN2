@@ -1,18 +1,30 @@
 package com.example.dacn2.entity.hotel;
 
+import com.example.dacn2.entity.BaseEntity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 
 @Entity
 @Table(name = "amenities")
-@Data
-public class Amenity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class Amenity extends BaseEntity {
 
-    @Column(nullable = false, unique = true)
-    private String name; // VD: "Hồ bơi", "Wifi miễn phí"
+    @Column(nullable = false)
+    private String name; // VD: "Wifi miễn phí", "Nhà hàng"
 
-    private String icon; // Mã icon (font-awesome) hoặc link ảnh icon
+    private String icon; // Lưu tên class icon (VD: "fa-wifi") hoặc URL ảnh icon
+
+    // Đánh dấu đây có phải tiện ích chính không (để hiện lên đầu trang như ảnh 2)
+    @Column(name = "is_prominent")
+    private Boolean isProminent = false;
+
+    // Thuộc nhóm nào? (VD: Thuộc nhóm "Ẩm thực")
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    @JsonIgnore // Tránh vòng lặp khi load Category
+    private AmenityCategory category;
 }

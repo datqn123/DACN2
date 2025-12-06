@@ -1,4 +1,4 @@
-package com.example.dacn2.controller;
+package com.example.dacn2.controller.others;
 
 import com.example.dacn2.dto.ApiResponse;
 import com.example.dacn2.service.FileUploadService;
