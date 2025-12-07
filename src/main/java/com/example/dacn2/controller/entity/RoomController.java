@@ -15,7 +15,8 @@ import java.util.List;
 @RequestMapping("/api/admin/rooms")
 public class RoomController {
 
-    @Autowired private RoomService roomService;
+    @Autowired
+    private RoomService roomService;
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")

@@ -6,6 +6,8 @@ import com.example.dacn2.dto.response.home.HotelCardResponse;
 import com.example.dacn2.dto.response.home.LocationCardResponse;
 import com.example.dacn2.dto.response.home.LocationSearchResult;
 import com.example.dacn2.dto.response.home.TourCardResponse;
+import com.example.dacn2.service.hotel_service.HotelService;
+import com.example.dacn2.service.hotel_service.SearchHotelService;
 import com.example.dacn2.service.page.HomeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +23,10 @@ public class HomeController {
 
     @Autowired
     private HomeService homeService;
+    @Autowired
+    private HotelService hotelService;
+    @Autowired
+    private SearchHotelService searchHotelService;
 
     // API: Lấy địa điểm nổi bật
     // GET: http://localhost:8080/api/public/home/locations
@@ -56,6 +62,22 @@ public class HomeController {
         return ApiResponse.<List<TourCardResponse>>builder()
                 .result(homeService.getFeaturedTours())
                 .message("Lấy danh sách tour thành công")
+                .build();
+    }
+
+    @GetMapping("/top-10-locations")
+    public ApiResponse<List<LocationSearchResult>> findTopDestinations() {
+        return ApiResponse.<List<LocationSearchResult>>builder()
+                .result(searchHotelService.findTopDestinations())
+                .message("Get 10 location")
+                .build();
+    }
+
+    @GetMapping("/search/location/hotel")
+    public ApiResponse<List<LocationSearchResult>> searchLocations(@RequestParam(required = false) String keyword) {
+        return ApiResponse.<List<LocationSearchResult>>builder()
+                .result(searchHotelService.searchLocationDropdown(keyword))
+                .message("Lấy kết quả tìm kiếm thành công")
                 .build();
     }
 }

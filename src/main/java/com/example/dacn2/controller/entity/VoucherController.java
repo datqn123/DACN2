@@ -2,8 +2,9 @@ package com.example.dacn2.controller.entity;
 
 import com.example.dacn2.dto.ApiResponse;
 import com.example.dacn2.dto.request.voucher.VoucherRequest;
+import com.example.dacn2.dto.response.VoucherResponse;
 import com.example.dacn2.entity.voucher.Voucher;
-import com.example.dacn2.service.entity.VoucherService;
+import com.example.dacn2.service.vocher_service.VoucherService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,12 +20,13 @@ import java.util.List;
 @RequestMapping("/api/admin/vouchers")
 public class VoucherController {
 
-    @Autowired private VoucherService voucherService;
+    @Autowired
+    private VoucherService voucherService;
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<List<Voucher>> getAll() {
-        return ApiResponse.<List<Voucher>>builder()
+    public ApiResponse<List<VoucherResponse>> getAll() {
+        return ApiResponse.<List<VoucherResponse>>builder()
                 .result(voucherService.getAll())
                 .build();
     }
@@ -33,8 +35,7 @@ public class VoucherController {
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<Voucher> create(
             @RequestPart("voucher") String voucherJson,
-            @RequestPart(value = "image", required = false) MultipartFile image
-    ) throws IOException {
+            @RequestPart(value = "image", required = false) MultipartFile image) throws IOException {
 
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule()); // Để đọc LocalDateTime
@@ -51,8 +52,7 @@ public class VoucherController {
     public ApiResponse<Voucher> update(
             @PathVariable Long id,
             @RequestPart("voucher") String voucherJson,
-            @RequestPart(value = "image", required = false) MultipartFile image
-    ) throws IOException {
+            @RequestPart(value = "image", required = false) MultipartFile image) throws IOException {
 
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());

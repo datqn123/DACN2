@@ -1,10 +1,9 @@
 package com.example.dacn2.entity.voucher;
 
 import com.example.dacn2.entity.BaseEntity;
-import com.example.dacn2.entity.voucher.VoucherScope;
-import com.example.dacn2.entity.voucher.DiscountType;
-import com.example.dacn2.entity.hotel.Hotel;
-import com.example.dacn2.entity.tour.Tour;
+import com.example.dacn2.entity.flight.Flight; // Nhớ import đúng package Flight
+import com.example.dacn2.entity.hotel.Hotel; // Nhớ import đúng package Hotel
+import com.example.dacn2.entity.tour.Tour; // Nhớ import đúng package Tour
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,66 +18,55 @@ import java.util.Set;
 @AllArgsConstructor
 public class Voucher extends BaseEntity {
 
-    // 1. Thông tin hiển thị (UI)
-    @Column(nullable = false, unique = true)
-    private String code; // UI: "TRIPSTAY30", "TRIPFL25"
+        // --- 1. THÔNG TIN CƠ BẢN ---
+        @Column(nullable = false, unique = true)
+        private String code; // Mã nhập (VD: TRAVEL2025)
 
-    @Column(nullable = false)
-    private String name; // UI: "Ưu đãi khách sạn dành riêng cho bạn"
+        @Column(nullable = false)
+        private String name; // Tên chương trình (VD: "Chào hè rực rỡ")
 
-    @Column(columnDefinition = "TEXT")
-    private String description; // UI: "Áp dụng cho khách hàng đã đăng ký..."
+        @Column(columnDefinition = "TEXT")
+        private String description;
 
-    private String image; // UI: Ảnh nền voucher
+        private String image; // Ảnh banner voucher
 
-    // 2. Logic giảm giá (Discount Logic)
-    @Enumerated(EnumType.STRING)
-    private DiscountType discountType; // PERCENTAGE hoặc FIXED_AMOUNT
+        // --- 2. LOGIC GIẢM GIÁ ---
+        @Enumerated(EnumType.STRING)
+        private DiscountType discountType; // % hay Tiền
 
-    private Double discountValue; // VD: 30 (nếu là %) hoặc 100000 (nếu là tiền)
+        private Double discountValue; // Giá trị (VD: 10 hoặc 50000)
 
-    private Double maxDiscountAmount; // QUAN TRỌNG: Giảm 30% nhưng tối đa bao nhiêu tiền? (VD: Max 500k)
+        private Double maxDiscountAmount; // Giảm tối đa (VD: 500k) - Quan trọng khi giảm %
 
-    private Double minOrderValue; // Đơn hàng tối thiểu để dùng voucher (VD: 1 triệu)
+        private Double minOrderValue; // Đơn tối thiểu để dùng (VD: 1 triệu)
 
-    // 3. Thời gian áp dụng (Timeframe)
-    @Column(nullable = false)
-    private LocalDateTime startDate; // UI: 20/11/2025
+        // --- 3. THỜI HẠN & GIỚI HẠN ---
+        private LocalDateTime startDate;
+        private LocalDateTime endDate;
 
-    @Column(nullable = false)
-    private LocalDateTime endDate;   // UI: 15/12/2025
+        private Integer usageLimit; // Tổng số lượng mã (VD: 1000)
+        private Integer usageCount = 0; // Đã dùng bao nhiêu?
 
-    // 4. Giới hạn sử dụng (Usage Limits)
-    private Integer usageLimit; // Tổng số lượng voucher phát hành (VD: 1000 cái)
+        private Integer userLimit; // Mỗi người dùng được mấy lần? (VD: 1)
 
-    private Integer usageCount = 0; // UI: "672 lượt" đã sử dụng. (Tăng lên khi có người đặt)
+        private Boolean isActive = true;
 
-    private Integer userLimit; // Một người được dùng tối đa mấy lần? (VD: 1 lần)
+        // --- 4. PHẠM VI ÁP DỤNG (SCOPE) ---
+        @Enumerated(EnumType.STRING)
+        private VoucherScope scope;
 
-    // 5. Phạm vi áp dụng (Scope)
-    @Enumerated(EnumType.STRING)
-    private VoucherScope scope; // HOTEL_ONLY, TOUR_ONLY...
+        // Danh sách Khách sạn áp dụng (Nếu scope = HOTEL_ONLY)
+        @ManyToMany(fetch = FetchType.LAZY)
+        @JoinTable(name = "voucher_applied_hotels", joinColumns = @JoinColumn(name = "voucher_id"), inverseJoinColumns = @JoinColumn(name = "hotel_id"))
+        private Set<Hotel> appliedHotels;
 
-    private Boolean isActive = true; // Admin có thể tắt voucher khẩn cấp
+        // Danh sách Tour áp dụng (Nếu scope = TOUR_ONLY)
+        @ManyToMany(fetch = FetchType.LAZY)
+        @JoinTable(name = "voucher_applied_tours", joinColumns = @JoinColumn(name = "voucher_id"), inverseJoinColumns = @JoinColumn(name = "tour_id"))
+        private Set<Tour> appliedTours;
 
-    // --- MỐI QUAN HỆ (Advanced) ---
-    // UI: "Chỉ áp dụng các khách sạn trong danh sách"
-
-    // Nếu voucher này chỉ dành riêng cho một số Khách sạn cụ thể
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "voucher_applied_hotels",
-            joinColumns = @JoinColumn(name = "voucher_id"),
-            inverseJoinColumns = @JoinColumn(name = "hotel_id")
-    )
-    private Set<Hotel> appliedHotels;
-
-    // Nếu voucher này chỉ dành riêng cho một số Tour cụ thể
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "voucher_applied_tours",
-            joinColumns = @JoinColumn(name = "voucher_id"),
-            inverseJoinColumns = @JoinColumn(name = "tour_id")
-    )
-    private Set<Tour> appliedTours;
+        // Danh sách Chuyến bay áp dụng (Nếu scope = FLIGHT_ONLY)
+        @ManyToMany(fetch = FetchType.LAZY)
+        @JoinTable(name = "voucher_applied_flights", joinColumns = @JoinColumn(name = "voucher_id"), inverseJoinColumns = @JoinColumn(name = "flight_id"))
+        private Set<Flight> appliedFlights;
 }

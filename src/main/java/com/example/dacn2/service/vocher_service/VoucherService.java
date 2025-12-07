@@ -1,6 +1,8 @@
-package com.example.dacn2.service.entity;
+package com.example.dacn2.service.vocher_service;
 
 import com.example.dacn2.dto.request.voucher.VoucherRequest;
+import com.example.dacn2.dto.response.HotelSummary;
+import com.example.dacn2.dto.response.VoucherResponse;
 import com.example.dacn2.entity.hotel.Hotel;
 import com.example.dacn2.entity.tour.Tour;
 import com.example.dacn2.entity.voucher.Voucher;
@@ -21,14 +23,21 @@ import java.util.List;
 @Service
 public class VoucherService {
 
-    @Autowired private VoucherRepository voucherRepository;
-    @Autowired private HotelRepository hotelRepository;
-    @Autowired private TourRepository tourRepository;
-    @Autowired private FlightRepository flightRepository;
-    @Autowired private FileUploadService fileUploadService;
+    @Autowired
+    private VoucherRepository voucherRepository;
+    @Autowired
+    private HotelRepository hotelRepository;
+    @Autowired
+    private TourRepository tourRepository;
+    @Autowired
+    private FlightRepository flightRepository;
+    @Autowired
+    private FileUploadService fileUploadService;
 
-    public List<Voucher> getAll() {
-        return voucherRepository.findAll();
+    public List<VoucherResponse> getAll() {
+        return voucherRepository.findAll().stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     @Transactional
@@ -60,6 +69,43 @@ public class VoucherService {
     @Transactional
     public void delete(Long id) {
         voucherRepository.deleteById(id);
+    }
+
+    private VoucherResponse toResponse(Voucher voucher) {
+        List<HotelSummary> hotelSummaries = voucher.getAppliedHotels().stream()
+                .map(hotel -> HotelSummary.builder()
+                        .id(hotel.getId())
+                        .name(hotel.getName())
+                        .address(hotel.getAddress())
+                        .starRating(hotel.getStarRating())
+                        .averageRating(hotel.getAverageRating())
+                        .image(hotel.getImages() != null && !hotel.getImages().isEmpty()
+                                ? hotel.getImages().get(0).getImageUrl()
+                                : null)
+                        .lowestPrice(hotel.getRooms().stream()
+                                .mapToDouble(r -> r.getPrice())
+                                .min().orElse(0))
+                        .build())
+                .toList();
+        return VoucherResponse.builder()
+                .id(voucher.getId())
+                .code(voucher.getCode())
+                .name(voucher.getName())
+                .description(voucher.getDescription())
+                .image(voucher.getImage())
+                .discountType(voucher.getDiscountType())
+                .discountValue(voucher.getDiscountValue())
+                .maxDiscountAmount(voucher.getMaxDiscountAmount())
+                .minOrderValue(voucher.getMinOrderValue())
+                .startDate(voucher.getStartDate())
+                .endDate(voucher.getEndDate())
+                .usageLimit(voucher.getUsageLimit())
+                .usageCount(voucher.getUsageCount())
+                .userLimit(voucher.getUserLimit())
+                .isActive(voucher.getIsActive())
+                .scope(voucher.getScope())
+                .appliedHotels(hotelSummaries)
+                .build();
     }
 
     // --- HÀM MAP DỮ LIỆU ---
