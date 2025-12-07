@@ -1,15 +1,10 @@
 package com.example.dacn2.controller.public_api;
 
 import com.example.dacn2.dto.ApiResponse;
-import com.example.dacn2.dto.request.location.LocationRequest;
 import com.example.dacn2.entity.Location;
 import com.example.dacn2.service.entity.LocationService;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/public/locations")

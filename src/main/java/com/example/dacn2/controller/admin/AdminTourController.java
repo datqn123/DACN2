@@ -40,5 +40,52 @@ public class AdminTourController {
                 .build();
     }
 
-    // Các hàm GET, PUT, DELETE bạn viết tương tự HotelController nhé
+    // GET ALL - Lấy danh sách tất cả tour
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<List<Tour>> getAll() {
+        return ApiResponse.<List<Tour>>builder()
+                .result(tourService.getAll())
+                .message("Lấy danh sách tour thành công")
+                .build();
+    }
+
+    // GET DETAIL - Lấy chi tiết một tour theo ID
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Tour> getDetail(@PathVariable Long id) {
+        return ApiResponse.<Tour>builder()
+                .result(tourService.getById(id))
+                .message("Lấy chi tiết tour thành công")
+                .build();
+    }
+
+    // UPDATE - Cập nhật tour theo ID
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Tour> update(
+            @PathVariable Long id,
+            @RequestPart("tour") String tourRequestJson,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images) throws IOException {
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+
+        TourRequest request = mapper.readValue(tourRequestJson, TourRequest.class);
+
+        return ApiResponse.<Tour>builder()
+                .result(tourService.update(id, request, images))
+                .message("Cập nhật tour thành công")
+                .build();
+    }
+
+    // DELETE - Xóa tour theo ID
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Void> delete(@PathVariable Long id) {
+        tourService.delete(id);
+        return ApiResponse.<Void>builder()
+                .message("Xóa tour thành công")
+                .build();
+    }
 }

@@ -70,4 +70,12 @@ public class AdminVoucherController {
         voucherService.delete(id);
         return ApiResponse.<Void>builder().message("Xóa voucher thành công").build();
     }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Voucher> getDetail(@PathVariable Long id) {
+        return ApiResponse.<Voucher>builder()
+                .result(voucherService.getById(id))
+                .build();
+    }
 }

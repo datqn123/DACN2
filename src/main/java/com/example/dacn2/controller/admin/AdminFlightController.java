@@ -72,4 +72,12 @@ public class AdminFlightController {
                                 .build();
         }
 
+        @DeleteMapping("/{id}")
+        @PreAuthorize("hasRole('ADMIN')")
+        public ApiResponse<Void> delete(@PathVariable Long id) {
+                flightService.delete(id);
+                return ApiResponse.<Void>builder()
+                                .message("Xóa chuyến bay thành công")
+                                .build();
+        }
 }

@@ -72,6 +72,11 @@ public class VoucherService {
         voucherRepository.deleteById(id);
     }
 
+    public Voucher getById(Long id) {
+        return voucherRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Voucher không tồn tại"));
+    }
+
     private VoucherResponse toResponse(Voucher voucher) {
         List<HotelSummary> hotelSummaries = voucher.getAppliedHotels().stream()
                 .map(hotel -> HotelSummary.builder()
