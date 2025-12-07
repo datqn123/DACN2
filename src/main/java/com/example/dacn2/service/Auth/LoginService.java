@@ -1,4 +1,4 @@
-package com.example.dacn2.service.UserService.Auth;
+package com.example.dacn2.service.Auth;
 
 import com.example.dacn2.dto.request.auth.LoginRequest;
 import com.example.dacn2.dto.request.auth.RegisterRequest;
@@ -68,13 +68,14 @@ public class LoginService {
     }
 
     public Account registerAccount(RegisterRequest request) {
-        if(!request.getPassword().equals(request.getConfirmPassword())) {
+        if (!request.getPassword().equals(request.getConfirmPassword())) {
             throw new RuntimeException("Mật khẩu koong khop");
         }
-        if(accountRepositoryInterface.findByEmail(request.getEmail()).isPresent()) {
+        if (accountRepositoryInterface.findByEmail(request.getEmail()).isPresent()) {
             throw new RuntimeException("Tai khoan da ton tai");
         }
-        Role userRole = roleRepository.findByName("USER").orElseThrow( () -> new RuntimeException("Không tìm thấy Role") );
+        Role userRole = roleRepository.findByName("USER")
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy Role"));
         Set<Role> roles = new HashSet<>();
         roles.add(userRole);
         Account account = new Account();
@@ -102,7 +103,8 @@ public class LoginService {
         // 2. Đưa Access Token vào Blacklist (Logic Mới)
         try {
             // Lấy thời gian hết hạn của Access Token từ JwtUtils
-            // (Bạn cần chắc chắn JwtUtils có hàm getExpirationFromToken, xem Bước 3b bên dưới)
+            // (Bạn cần chắc chắn JwtUtils có hàm getExpirationFromToken, xem Bước 3b bên
+            // dưới)
             Date expiryDate = jwtUtils.getExpirationFromToken(accessToken);
 
             String tokenId = accessToken; // Dùng luôn chuỗi token làm ID

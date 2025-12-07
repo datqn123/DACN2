@@ -1,10 +1,10 @@
-package com.example.dacn2.controller.entity;
+package com.example.dacn2.controller.admin;
 
 import com.example.dacn2.dto.ApiResponse;
 import com.example.dacn2.dto.request.voucher.VoucherRequest;
 import com.example.dacn2.dto.response.VoucherResponse;
 import com.example.dacn2.entity.voucher.Voucher;
-import com.example.dacn2.service.vocher_service.VoucherService;
+import com.example.dacn2.service.entity.VoucherService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +18,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/vouchers")
-public class VoucherController {
+public class AdminVoucherController {
 
     @Autowired
     private VoucherService voucherService;

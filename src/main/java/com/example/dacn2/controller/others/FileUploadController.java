@@ -1,7 +1,8 @@
 package com.example.dacn2.controller.others;
 
 import com.example.dacn2.dto.ApiResponse;
-import com.example.dacn2.service.FileUploadService;
+import com.example.dacn2.service.user_service.FileUploadService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;

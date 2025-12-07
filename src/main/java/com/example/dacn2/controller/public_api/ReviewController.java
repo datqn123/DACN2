@@ -1,4 +1,4 @@
-package com.example.dacn2.controller.entity;
+package com.example.dacn2.controller.public_api;
 
 import com.example.dacn2.dto.ApiResponse;
 import com.example.dacn2.dto.request.hotel.ReviewRequest;
@@ -15,7 +15,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/reviews")
+@RequestMapping("/api/public/reviews")
 public class ReviewController {
 
     @Autowired

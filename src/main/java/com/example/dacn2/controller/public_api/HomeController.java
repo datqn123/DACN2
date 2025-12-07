@@ -1,4 +1,4 @@
-package com.example.dacn2.controller.page;
+package com.example.dacn2.controller.public_api;
 
 import com.example.dacn2.dto.ApiResponse;
 import com.example.dacn2.dto.response.home.FlightCardResponse;
@@ -6,9 +6,10 @@ import com.example.dacn2.dto.response.home.HotelCardResponse;
 import com.example.dacn2.dto.response.home.LocationCardResponse;
 import com.example.dacn2.dto.response.home.LocationSearchResult;
 import com.example.dacn2.dto.response.home.TourCardResponse;
-import com.example.dacn2.service.hotel_service.HotelService;
-import com.example.dacn2.service.hotel_service.SearchHotelService;
+import com.example.dacn2.service.entity.HotelService;
 import com.example.dacn2.service.page.HomeService;
+import com.example.dacn2.service.user_service.SearchHotelService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

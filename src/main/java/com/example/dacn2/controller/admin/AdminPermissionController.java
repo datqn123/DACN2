@@ -1,4 +1,4 @@
-package com.example.dacn2.controller.entity;
+package com.example.dacn2.controller.admin;
 
 import com.example.dacn2.dto.request.RoleReuest.PermissionRequest;
 import com.example.dacn2.dto.ApiResponse;
@@ -14,8 +14,8 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/permission")
-public class PermissionController {
+@RequestMapping("/api/admin/permissions")
+public class AdminPermissionController {
 
     @Autowired
     PermissionService permissionService;

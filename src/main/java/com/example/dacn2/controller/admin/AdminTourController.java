@@ -1,4 +1,4 @@
-package com.example.dacn2.controller.entity;
+package com.example.dacn2.controller.admin;
 
 import com.example.dacn2.dto.ApiResponse;
 import com.example.dacn2.dto.request.tour.TourRequest;
@@ -17,16 +17,16 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/tours")
-public class TourController {
+public class AdminTourController {
 
-    @Autowired private TourService tourService;
+    @Autowired
+    private TourService tourService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<Tour> create(
             @RequestPart("tour") String tourRequestJson,
-            @RequestPart(value = "images", required = false) List<MultipartFile> images
-    ) throws IOException {
+            @RequestPart(value = "images", required = false) List<MultipartFile> images) throws IOException {
 
         // Cấu hình ObjectMapper để đọc được LocalDate (yyyy-MM-dd)
         ObjectMapper mapper = new ObjectMapper();

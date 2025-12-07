@@ -1,4 +1,4 @@
-package com.example.dacn2.service.hotel_service;
+package com.example.dacn2.service.user_service;
 
 import com.example.dacn2.dto.response.home.LocationSearchResult;
 import com.example.dacn2.repository.flight.FlightRepository;

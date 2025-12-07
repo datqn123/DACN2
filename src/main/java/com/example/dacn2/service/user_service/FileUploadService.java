@@ -1,4 +1,4 @@
-package com.example.dacn2.service;
+package com.example.dacn2.service.user_service;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
@@ -17,7 +17,8 @@ public class FileUploadService {
 
     public String uploadFile(MultipartFile file) throws IOException {
         // Upload file lên Cloudinary
-        // "folder", "dacn2_images" -> Tự động tạo thư mục tên dacn2_images trên cloud để quản lý cho gọn
+        // "folder", "dacn2_images" -> Tự động tạo thư mục tên dacn2_images trên cloud
+        // để quản lý cho gọn
         Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
                 ObjectUtils.asMap("folder", "dacn2_images"));
 

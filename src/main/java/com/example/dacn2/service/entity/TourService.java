@@ -5,7 +5,8 @@ import com.example.dacn2.entity.*;
 import com.example.dacn2.entity.tour.*;
 import com.example.dacn2.repository.location.LocationInterfaceRepository;
 import com.example.dacn2.repository.tour.TourRepository;
-import com.example.dacn2.service.FileUploadService;
+import com.example.dacn2.service.user_service.FileUploadService;
+
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,9 +21,12 @@ import java.util.stream.Collectors;
 @Service
 public class TourService {
 
-    @Autowired private TourRepository tourRepository;
-    @Autowired private LocationInterfaceRepository locationRepository;
-    @Autowired private FileUploadService fileUploadService;
+    @Autowired
+    private TourRepository tourRepository;
+    @Autowired
+    private LocationInterfaceRepository locationRepository;
+    @Autowired
+    private FileUploadService fileUploadService;
 
     public List<Tour> getAll() {
         return tourRepository.findAll();
@@ -84,7 +88,8 @@ public class TourService {
 
         // 3. Tạo đối tượng TourImage và gán vào Tour
         List<TourImage> tourImages = new ArrayList<>();
-        // (Nếu update, đoạn này có thể cần logic giữ lại ảnh cũ, ở đây mình đang tạo list mới)
+        // (Nếu update, đoạn này có thể cần logic giữ lại ảnh cũ, ở đây mình đang tạo
+        // list mới)
         if (tour.getImages() != null) {
             tourImages.addAll(tour.getImages()); // Giữ lại ảnh cũ nếu muốn
         }

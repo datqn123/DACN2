@@ -1,4 +1,4 @@
-package com.example.dacn2.service.hotel_service;
+package com.example.dacn2.service.entity;
 
 import com.example.dacn2.dto.request.hotel.HotelRequest;
 import com.example.dacn2.entity.hotel.HotelImage;
@@ -9,7 +9,8 @@ import com.example.dacn2.entity.hotel.HotelView;
 import com.example.dacn2.repository.hotel.AmenityRepository;
 import com.example.dacn2.repository.hotel.HotelRepository;
 import com.example.dacn2.repository.location.LocationInterfaceRepository; // Hoặc LocationRepository tùy tên bạn đặt
-import com.example.dacn2.service.FileUploadService;
+import com.example.dacn2.service.user_service.FileUploadService;
+
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

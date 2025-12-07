@@ -1,4 +1,4 @@
-package com.example.dacn2.service.UserService.Auth;
+package com.example.dacn2.service.Auth;
 
 import com.example.dacn2.dto.request.RefreshTokenRequest;
 import com.example.dacn2.dto.response.LoginReponse;
@@ -25,14 +25,17 @@ public class RefreshTokenService {
     AccountRepositoryInterface accountRepositoryInterface;
     @Autowired
     JWTUtils jwtUtils;
+
     public RefreshToken findByToken(String token) {
-        return refreshTokenRepository.findByToken(token).orElseThrow(() -> new RuntimeException("Refresh Token not exist"));
+        return refreshTokenRepository.findByToken(token)
+                .orElseThrow(() -> new RuntimeException("Refresh Token not exist"));
     }
 
     @Transactional
     public RefreshToken createRefreshToken(Long userId) {
         // delete old refresh token when user login
-        accountRepositoryInterface.findById(userId).ifPresent(account -> refreshTokenRepository.deleteByAccount(account));
+        accountRepositoryInterface.findById(userId)
+                .ifPresent(account -> refreshTokenRepository.deleteByAccount(account));
         refreshTokenRepository.flush();
         Account account = accountRepositoryInterface.findById(userId).get();
         RefreshToken refreshToken = new RefreshToken();

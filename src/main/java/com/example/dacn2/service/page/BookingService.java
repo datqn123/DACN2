@@ -1,4 +1,4 @@
-package com.example.dacn2.service;
+package com.example.dacn2.service.page;
 
 import java.time.LocalDateTime;
 import java.util.List;

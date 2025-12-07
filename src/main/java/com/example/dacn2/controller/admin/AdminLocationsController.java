@@ -1,4 +1,4 @@
-package com.example.dacn2.controller.entity;
+package com.example.dacn2.controller.admin;
 
 import com.example.dacn2.dto.ApiResponse;
 import com.example.dacn2.dto.request.location.LocationRequest;
@@ -12,15 +12,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/locations")
-public class LocationController {
+@RequestMapping("/api/admin/locations")
+public class AdminLocationsController {
 
     @Autowired
     private LocationService locationService;
 
-    // --- PUBLIC API (Ai cũng xem được) ---
-
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<List<Location>> getAll() {
         return ApiResponse.<List<Location>>builder()
                 .result(locationService.getAll())
@@ -28,13 +27,12 @@ public class LocationController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<Location> getDetail(@PathVariable Long id) {
         return ApiResponse.<Location>builder()
                 .result(locationService.getById(id))
                 .build();
     }
-
-    // --- ADMIN API (Cần quyền quản trị) ---
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")

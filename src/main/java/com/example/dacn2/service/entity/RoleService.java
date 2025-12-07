@@ -1,4 +1,4 @@
-package com.example.dacn2.service.UserServiceInterface;
+package com.example.dacn2.service.entity;
 
 import com.example.dacn2.entity.Auth.Permission;
 import com.example.dacn2.entity.Auth.Role;
@@ -15,10 +15,11 @@ public class RoleService {
     RoleRepository roleRepository;
     @Autowired
     PermissionRepository permissionRepository;
+
     public Role addPermissonsToRole(long idRole, List<String> permissionNames) {
         Role role = roleRepository.findById(idRole).orElseThrow(() -> new RuntimeException("Role not exist"));
         List<Permission> permissionsToAdd = permissionRepository.findAllByNameIn(permissionNames);
-        if(permissionsToAdd.isEmpty()) {
+        if (permissionsToAdd.isEmpty()) {
             throw new RuntimeException("Don't have any permission");
         }
         role.getPermissions().addAll(permissionsToAdd);

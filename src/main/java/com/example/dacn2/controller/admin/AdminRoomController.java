@@ -1,4 +1,4 @@
-package com.example.dacn2.controller.entity;
+package com.example.dacn2.controller.admin;
 
 import com.example.dacn2.dto.ApiResponse;
 import com.example.dacn2.dto.request.hotel.RoomRequest;
@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/rooms")
-public class RoomController {
+public class AdminRoomController {
 
     @Autowired
     private RoomService roomService;

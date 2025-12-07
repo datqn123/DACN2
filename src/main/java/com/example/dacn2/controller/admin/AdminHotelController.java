@@ -1,11 +1,11 @@
-package com.example.dacn2.controller.entity;
+package com.example.dacn2.controller.admin;
 
 import com.example.dacn2.dto.ApiResponse;
 import com.example.dacn2.dto.request.hotel.HotelRequest;
 import com.example.dacn2.dto.response.home.LocationSearchResult;
 import com.example.dacn2.entity.hotel.Hotel;
-import com.example.dacn2.service.hotel_service.HotelService;
-import com.example.dacn2.service.hotel_service.SearchHotelService;
+import com.example.dacn2.service.entity.HotelService;
+import com.example.dacn2.service.user_service.SearchHotelService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -25,8 +25,8 @@ import java.io.IOException;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/hotels")
-public class HotelController {
+@RequestMapping("/api/admin/hotels")
+public class AdminHotelController {
 
         @Autowired
         private HotelService hotelService;
@@ -101,25 +101,6 @@ public class HotelController {
                 hotelService.delete(id);
                 return ApiResponse.<Void>builder()
                                 .message("Xóa khách sạn thành công")
-                                .build();
-        }
-
-        // get top 10 location common
-        @GetMapping("/top-10-locations")
-        public ApiResponse<List<LocationSearchResult>> findTopDestinations() {
-                return ApiResponse.<List<LocationSearchResult>>builder()
-                                .result(searchHotelService.findTopDestinations())
-                                .message("Get 10 location")
-                                .build();
-        }
-
-        // API cho thanh tìm kiếm (Dropdown)
-        // GET: /api/public/search/locations?keyword=Da
-        @GetMapping("/search/locations")
-        public ApiResponse<List<LocationSearchResult>> searchLocations(@RequestParam(required = false) String keyword) {
-                return ApiResponse.<List<LocationSearchResult>>builder()
-                                .result(searchHotelService.searchLocationDropdown(keyword))
-                                .message("Lấy kết quả tìm kiếm thành công")
                                 .build();
         }
 }

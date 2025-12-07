@@ -1,4 +1,4 @@
-package com.example.dacn2.controller.user;
+package com.example.dacn2.controller.public_api;
 
 import java.util.List;
 
@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.dacn2.dto.ApiResponse;
 import com.example.dacn2.dto.response.VoucherResponse;
-import com.example.dacn2.service.BookingService;
+import com.example.dacn2.service.page.BookingService;
 
 @RestController
 @RequestMapping("/api/public/booking")

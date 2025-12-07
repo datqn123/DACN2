@@ -4,7 +4,8 @@ import com.example.dacn2.dto.request.flight.FlightRequest;
 import com.example.dacn2.dto.request.flight.FlightSeatRequest;
 import com.example.dacn2.entity.flight.*;
 import com.example.dacn2.repository.flight.*;
-import com.example.dacn2.service.FileUploadService;
+import com.example.dacn2.service.user_service.FileUploadService;
+
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,10 +19,14 @@ import java.util.List;
 @Service
 public class FlightService {
 
-    @Autowired private FlightRepository flightRepository;
-    @Autowired private AirlineRepository airlineRepository;
-    @Autowired private AirportRepository airportRepository;
-    @Autowired private FileUploadService fileUploadService;
+    @Autowired
+    private FlightRepository flightRepository;
+    @Autowired
+    private AirlineRepository airlineRepository;
+    @Autowired
+    private AirportRepository airportRepository;
+    @Autowired
+    private FileUploadService fileUploadService;
 
     // 1. Lấy tất cả
     public List<Flight> getAll() {
@@ -136,6 +141,7 @@ public class FlightService {
             }
         }
     }
+
     private String processImage(String linkUrl, MultipartFile file) {
         try {
             // Ưu tiên 1: Upload file nếu có

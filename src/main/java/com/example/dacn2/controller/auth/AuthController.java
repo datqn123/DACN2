@@ -1,4 +1,4 @@
-package com.example.dacn2.controller.others;
+package com.example.dacn2.controller.auth;
 
 import com.example.dacn2.dto.request.auth.LoginRequest;
 import com.example.dacn2.dto.request.auth.LogoutRequest;
@@ -7,8 +7,9 @@ import com.example.dacn2.dto.request.auth.RegisterRequest;
 import com.example.dacn2.dto.ApiResponse;
 import com.example.dacn2.dto.response.LoginReponse;
 import com.example.dacn2.entity.User.Account;
-import com.example.dacn2.service.UserService.Auth.LoginService;
-import com.example.dacn2.service.UserService.Auth.RefreshTokenService;
+import com.example.dacn2.service.Auth.LoginService;
+import com.example.dacn2.service.Auth.RefreshTokenService;
+
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
