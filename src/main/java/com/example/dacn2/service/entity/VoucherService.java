@@ -3,17 +3,21 @@ package com.example.dacn2.service.entity;
 import com.example.dacn2.dto.request.voucher.VoucherRequest;
 import com.example.dacn2.dto.response.HotelSummary;
 import com.example.dacn2.dto.response.VoucherResponse;
+import com.example.dacn2.dto.response.home.VoucherCardResponse;
 import com.example.dacn2.entity.hotel.Hotel;
 import com.example.dacn2.entity.tour.Tour;
 import com.example.dacn2.entity.voucher.Voucher;
-import com.example.dacn2.repository.flight.FlightRepository;
+import com.example.dacn2.entity.Location;
 import com.example.dacn2.repository.hotel.HotelRepository;
+import com.example.dacn2.repository.location.LocationInterfaceRepository;
 import com.example.dacn2.repository.tour.TourRepository;
 import com.example.dacn2.repository.voucher.VoucherRepository;
 import com.example.dacn2.service.user_service.FileUploadService;
 
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,7 +35,7 @@ public class VoucherService {
     @Autowired
     private TourRepository tourRepository;
     @Autowired
-    private FlightRepository flightRepository;
+    private LocationInterfaceRepository locationsRepository;
     @Autowired
     private FileUploadService fileUploadService;
 
@@ -75,6 +79,36 @@ public class VoucherService {
     public Voucher getById(Long id) {
         return voucherRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Voucher không tồn tại"));
+    }
+
+    public List<VoucherCardResponse> getVouchersToHome() {
+        Pageable pageable = PageRequest.of(0, 3);
+        List<Voucher> vouchers = voucherRepository.get3VoucherForHome(pageable);
+        return vouchers.stream()
+                .map(this::toCardResponse)
+                .toList();
+    }
+
+    public List<VoucherCardResponse> getVoucherToHotelPage() {
+        Pageable pageable = PageRequest.of(0, 5);
+        List<Voucher> vouchers = voucherRepository.get5VoucherForHotelPage(pageable);
+        return vouchers.stream()
+                .map(this::toCardResponse)
+                .toList();
+    }
+
+    private VoucherCardResponse toCardResponse(Voucher voucher) {
+        return VoucherCardResponse.builder()
+                .id(voucher.getId())
+                .name(voucher.getName())
+                .code(voucher.getCode())
+                .description(voucher.getDescription())
+                .image(voucher.getImage())
+                .discountType(voucher.getDiscountType())
+                .discountValue(voucher.getDiscountValue())
+                .maxDiscountAmount(voucher.getMaxDiscountAmount())
+                .isActive(voucher.getIsActive())
+                .build();
     }
 
     private VoucherResponse toResponse(Voucher voucher) {
@@ -128,6 +162,15 @@ public class VoucherService {
         voucher.setUsageLimit(request.getUsageLimit());
         voucher.setUserLimit(request.getUserLimit());
         voucher.setScope(request.getScope());
+        voucher.setForNewUsersOnly(Boolean.TRUE.equals(request.getForNewUsersOnly()));
+
+        if (request.getAppliedLocationIds() != null && !request.getAppliedLocationIds().isEmpty()) {
+            List<Location> locations = locationsRepository.findAllById(request.getAppliedLocationIds());
+            voucher.setAppliedLocations(new HashSet<>(locations));
+        } else {
+            // Nếu gửi list rỗng thì xóa liên kết cũ (trường hợp update)
+            voucher.setAppliedLocations(new HashSet<>());
+        }
 
         // Xử lý ảnh (Ưu tiên file upload, sau đó đến link text)
         if (image != null && !image.isEmpty()) {

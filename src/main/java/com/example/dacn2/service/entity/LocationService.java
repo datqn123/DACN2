@@ -4,6 +4,8 @@ import com.example.dacn2.dto.request.location.LocationRequest;
 import com.example.dacn2.entity.Location;
 import com.example.dacn2.repository.location.LocationInterfaceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,8 +31,8 @@ public class LocationService {
     // 3. Tạo mới
     @Transactional
     public Location create(LocationRequest request) {
-        //  check exist
-        if(locationRepository.existsByName(request.getName())){
+        // check exist
+        if (locationRepository.existsByName(request.getName())) {
             throw new RuntimeException("Location is exist");
         }
         // Check trùng slug
@@ -68,6 +70,19 @@ public class LocationService {
         locationRepository.deleteById(id);
     }
 
+    public List<Location> getChildLocationByParentSlug(String parent_slug) {
+        return locationRepository.findChildLocationByParentSlug(parent_slug);
+    }
+
+    public List<Location> getCountryToHotelPage() {
+        return locationRepository.getCountryToHotelPage();
+    }
+
+    public List<Location> getFeaturedLocationsToHotelPage() {
+        Pageable pageable = PageRequest.of(0, 10);
+        return locationRepository.getFeaturedLocationsToHotelPage(pageable);
+    }
+
     // Hàm phụ trợ: Map dữ liệu từ DTO sang Entity
     private void mapRequestToEntity(LocationRequest request, Location location) {
         location.setName(request.getName());
@@ -85,6 +100,5 @@ public class LocationService {
             location.setParent(null); // Nếu không gửi parentId thì là cấp cao nhất
         }
     }
-
 
 }

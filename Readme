@@ -1,3 +1,4 @@
 Front en
 Để xem được các URL và request hãy chạy link này
-http://localhost:8080/swagger-ui/index.html
+https://tripgo-api.onrender.com/swagger-ui/index.html
+quá 15p không gọi API thì sever sẽ chuyển mode sleep cần restart lại khi call API

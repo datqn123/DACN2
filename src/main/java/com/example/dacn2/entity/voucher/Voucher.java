@@ -1,6 +1,7 @@
 package com.example.dacn2.entity.voucher;
 
 import com.example.dacn2.entity.BaseEntity;
+import com.example.dacn2.entity.Location;
 import com.example.dacn2.entity.flight.Flight; // Nhớ import đúng package Flight
 import com.example.dacn2.entity.hotel.Hotel; // Nhớ import đúng package Hotel
 import com.example.dacn2.entity.tour.Tour; // Nhớ import đúng package Tour
@@ -55,6 +56,9 @@ public class Voucher extends BaseEntity {
         @Enumerated(EnumType.STRING)
         private VoucherScope scope;
 
+        @Column(name = "for_new_users_only")
+        private Boolean forNewUsersOnly = false;
+
         // Danh sách Khách sạn áp dụng (Nếu scope = HOTEL_ONLY)
         @ManyToMany(fetch = FetchType.LAZY)
         @JoinTable(name = "voucher_applied_hotels", joinColumns = @JoinColumn(name = "voucher_id"), inverseJoinColumns = @JoinColumn(name = "hotel_id"))
@@ -69,4 +73,10 @@ public class Voucher extends BaseEntity {
         @ManyToMany(fetch = FetchType.LAZY)
         @JoinTable(name = "voucher_applied_flights", joinColumns = @JoinColumn(name = "voucher_id"), inverseJoinColumns = @JoinColumn(name = "flight_id"))
         private Set<Flight> appliedFlights;
+
+        // Logic: Nếu list này không rỗng, dịch vụ phải nằm trong các địa điểm này mới
+        // được dùng voucher
+        @ManyToMany(fetch = FetchType.LAZY)
+        @JoinTable(name = "voucher_applied_locations", joinColumns = @JoinColumn(name = "voucher_id"), inverseJoinColumns = @JoinColumn(name = "location_id"))
+        private Set<Location> appliedLocations;
 }

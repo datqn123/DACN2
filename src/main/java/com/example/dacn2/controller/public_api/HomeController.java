@@ -6,7 +6,9 @@ import com.example.dacn2.dto.response.home.HotelCardResponse;
 import com.example.dacn2.dto.response.home.LocationCardResponse;
 import com.example.dacn2.dto.response.home.LocationSearchResult;
 import com.example.dacn2.dto.response.home.TourCardResponse;
+import com.example.dacn2.dto.response.home.VoucherCardResponse;
 import com.example.dacn2.service.entity.HotelService;
+import com.example.dacn2.service.entity.VoucherService;
 import com.example.dacn2.service.page.HomeService;
 import com.example.dacn2.service.user_service.SearchHotelService;
 
@@ -28,6 +30,8 @@ public class HomeController {
     private HotelService hotelService;
     @Autowired
     private SearchHotelService searchHotelService;
+    @Autowired
+    private VoucherService voucherService;
 
     // API: Lấy địa điểm nổi bật
     // GET: http://localhost:8080/api/public/home/locations
@@ -54,6 +58,15 @@ public class HomeController {
         return ApiResponse.<List<HotelCardResponse>>builder()
                 .result(homeService.getFeaturedHotels())
                 .message("Lấy danh sách khách sạn giá tốt thành công")
+                .build();
+    }
+
+    // lấy voucher
+    @GetMapping("/vouchers")
+    public ApiResponse<List<VoucherCardResponse>> getFeaturedVouchers() {
+        return ApiResponse.<List<VoucherCardResponse>>builder()
+                .result(voucherService.getVouchersToHome())
+                .message("Lấy danh sách voucher thành công")
                 .build();
     }
 

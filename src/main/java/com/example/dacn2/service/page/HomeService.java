@@ -116,8 +116,10 @@ public class HomeService {
             dto.setThumbnail(hotel.getImages().get(0).getImageUrl());
         }
 
-        // Tính giá phòng thấp nhất (từ Room entity - field price có kiểu Double)
-        if (hotel.getRooms() != null && !hotel.getRooms().isEmpty()) {
+        // Giá phòng thấp nhất: ưu tiên dùng pricePerNightFrom, không thì tính từ rooms
+        if (hotel.getPricePerNightFrom() != null) {
+            dto.setMinPrice(hotel.getPricePerNightFrom());
+        } else if (hotel.getRooms() != null && !hotel.getRooms().isEmpty()) {
             double minPrice = hotel.getRooms().stream()
                     .filter(room -> room.getPrice() != null && room.getIsAvailable())
                     .mapToDouble(Room::getPrice)

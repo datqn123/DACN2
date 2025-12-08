@@ -44,4 +44,13 @@ public interface LocationInterfaceRepository extends JpaRepository<Location, Lon
                         "GROUP BY l.id, l.name, p.name, l.type " +
                         "ORDER BY COUNT(h.id) DESC")
         List<LocationSearchResult> searchLocationsWithHotelCount(@Param("keyword") String keyword, Pageable pageable);
+
+        @Query("SELECT l FROM Location l WHERE l.parent.slug = :slugCountry")
+        List<Location> findChildLocationByParentSlug(@Param("slugCountry") String slugCountry);
+
+        @Query("SELECT l FROM Location l WHERE l.type = 'COUNTRY'")
+        List<Location> getCountryToHotelPage();
+
+        @Query("SELECT l FROM Location l WHERE l.type IN ('PROVINCE')")
+        List<Location> getFeaturedLocationsToHotelPage(Pageable pageable);
 }

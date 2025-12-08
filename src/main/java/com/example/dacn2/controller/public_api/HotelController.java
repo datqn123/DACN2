@@ -1,8 +1,11 @@
 package com.example.dacn2.controller.public_api;
 
 import com.example.dacn2.dto.ApiResponse;
+import com.example.dacn2.dto.request.hotel.HotelFilterRequest;
+import com.example.dacn2.dto.response.home.HotelSearchResponse;
 import com.example.dacn2.dto.response.home.LocationSearchResult;
 import com.example.dacn2.entity.hotel.Hotel;
+import com.example.dacn2.entity.hotel.HotelType;
 import com.example.dacn2.service.entity.HotelService;
 import com.example.dacn2.service.user_service.SearchHotelService;
 
@@ -47,6 +50,34 @@ public class HotelController {
         public ApiResponse<Hotel> getDetail(@PathVariable Long id) {
                 return ApiResponse.<Hotel>builder()
                                 .result(hotelService.getById(id))
+                                .build();
+        }
+
+        @GetMapping("/search")
+        public ApiResponse<HotelSearchResponse> searchHotels(
+                        @RequestParam(required = false) String slug,
+                        @RequestParam(required = false) Double minPrice,
+                        @RequestParam(required = false) Double maxPrice,
+                        @RequestParam(required = false) Integer minStarRating,
+                        @RequestParam(required = false) Integer maxStarRating,
+                        @RequestParam(required = false) HotelType hotelType,
+                        @RequestParam(required = false) String sortByPrice,
+                        @RequestParam(required = false, defaultValue = "0") Integer page) {
+
+                HotelFilterRequest filter = HotelFilterRequest.builder()
+                                .locationSlug(slug)
+                                .minPrice(minPrice)
+                                .maxPrice(maxPrice)
+                                .minStarRating(minStarRating)
+                                .maxStarRating(maxStarRating)
+                                .hotelType(hotelType)
+                                .sortByPrice(sortByPrice)
+                                .page(page)
+                                .build();
+
+                return ApiResponse.<HotelSearchResponse>builder()
+                                .result(searchHotelService.searchHotelsWithFilter(filter))
+                                .message("Tìm kiếm khách sạn thành công")
                                 .build();
         }
 }

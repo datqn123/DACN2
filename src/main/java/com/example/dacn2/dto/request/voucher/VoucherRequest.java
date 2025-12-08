@@ -29,13 +29,13 @@ public class VoucherRequest {
     private Double discountValue; // 30 hoặc 50000
 
     private Double maxDiscountAmount; // Giảm tối đa bao nhiêu?
-    private Double minOrderValue;     // Đơn tối thiểu
+    private Double minOrderValue; // Đơn tối thiểu
 
     private LocalDateTime startDate;
     private LocalDateTime endDate;
 
     private Integer usageLimit; // Tổng số lượng
-    private Integer userLimit;  // Giới hạn mỗi người
+    private Integer userLimit; // Giới hạn mỗi người
 
     @NotNull
     private VoucherScope scope; // GLOBAL, HOTEL_ONLY...
@@ -49,4 +49,7 @@ public class VoucherRequest {
 
     // Nếu scope là FLIGHT_ONLY
     private List<Long> appliedFlightIds;
+
+    private Boolean forNewUsersOnly;
+    private List<Long> appliedLocationIds;
 }
