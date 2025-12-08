@@ -23,4 +23,6 @@ public class HotelCardResponse {
     private Double minPrice; // Giá phòng thấp nhất/đêm
 
     private String hotelType; // HOTEL, RESORT, etc.
+
+    private Boolean isFavorite; // true nếu user đã yêu thích hotel này
 }

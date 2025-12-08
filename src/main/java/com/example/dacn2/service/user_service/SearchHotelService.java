@@ -1,5 +1,6 @@
 package com.example.dacn2.service.user_service;
 
+import com.example.dacn2.dto.request.SearchHistoryRequest;
 import com.example.dacn2.dto.request.hotel.HotelFilterRequest;
 import com.example.dacn2.dto.response.home.HotelCardResponse;
 import com.example.dacn2.dto.response.home.HotelSearchResponse;
@@ -11,6 +12,7 @@ import com.example.dacn2.repository.hotel.HotelRepository;
 import com.example.dacn2.repository.hotel.HotelSpecification;
 import com.example.dacn2.repository.location.LocationInterfaceRepository;
 import com.example.dacn2.repository.tour.TourRepository;
+import com.example.dacn2.service.entity.SearchHistoryService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -23,7 +25,7 @@ import java.util.List;
 @Service
 public class SearchHotelService {
 
-    private static final int PAGE_SIZE = 20; // Số lượng kết quả mỗi trang
+    private static final int PAGE_SIZE = 20;
 
     @Autowired
     private LocationInterfaceRepository locationRepository;
@@ -33,6 +35,8 @@ public class SearchHotelService {
     private HotelRepository hotelRepository;
     @Autowired
     private TourRepository tourRepository;
+    @Autowired
+    private SearchHistoryService searchHistoryService;
 
     public List<LocationSearchResult> findTopDestinations() {
         Pageable top10 = PageRequest.of(0, 10);
@@ -96,6 +100,31 @@ public class SearchHotelService {
                 .hasNext(page < totalPages - 1)
                 .hasPrevious(page > 0)
                 .build();
+    }
+
+    /**
+     * Tìm khách sạn + Tự động lưu lịch sử (nếu user đã đăng nhập)
+     * Dùng cho Controller, tái sử dụng cho Flight, Tour...
+     */
+    public HotelSearchResponse searchHotelsAndSaveHistory(HotelFilterRequest filter, Long accountId) {
+        HotelSearchResponse result = searchHotelsWithFilter(filter);
+
+        // Lưu lịch sử nếu có accountId và có keyword
+        if (accountId != null && filter.getLocationSlug() != null && !filter.getLocationSlug().isBlank()) {
+            SearchHistoryRequest historyRequest = SearchHistoryRequest.builder()
+                    .keyword(filter.getLocationSlug())
+                    .searchType("HOTEL")
+                    .resultCount((int) result.getTotalElements())
+                    .minPrice(filter.getMinPrice())
+                    .maxPrice(filter.getMaxPrice())
+                    .starRating(filter.getMinStarRating())
+                    .hotelType(filter.getHotelType() != null ? filter.getHotelType().name() : null)
+                    .build();
+
+            searchHistoryService.saveFromRequest(accountId, historyRequest);
+        }
+
+        return result;
     }
 
     /**

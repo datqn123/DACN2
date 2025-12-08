@@ -8,19 +8,44 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
-    // Lấy lịch sử đặt vé của 1 user
-    List<Booking> findByUser(Account user);
+        List<Booking> findByUser(Account user);
 
-    // Tìm theo mã đơn hàng
-    Booking findByBookingCode(String bookingCode);
+        List<Booking> findByUserIdOrderByCreatedAtDesc(Long userId);
 
-    @Query("SELECT COUNT(b) FROM Booking b " +
-            "WHERE b.room.id = :roomId " +
-            "AND b.status != 'CANCELLED' " +
-            "AND b.checkInDate < :checkOutDate " +
-            "AND b.checkOutDate > :checkInDate")
-    Long countBookedRooms(Long roomId, LocalDateTime checkInDate, LocalDateTime checkOutDate);
+        Booking findByBookingCode(String bookingCode);
+
+        @Query("SELECT COUNT(b) FROM Booking b " +
+                        "WHERE b.room.id = :roomId " +
+                        "AND b.status != 'CANCELLED' " +
+                        "AND b.checkInDate < :checkOutDate " +
+                        "AND b.checkOutDate > :checkInDate")
+        Long countBookedRooms(Long roomId, LocalDateTime checkInDate, LocalDateTime checkOutDate);
+
+        /**
+         * Đếm tổng số phòng đã đặt của 1 hotel trong khoảng ngày
+         * Dùng để check real-time availability khi search
+         */
+        @Query("SELECT COALESCE(SUM(r.quantity), 0) - COALESCE(COUNT(b), 0) FROM Room r " +
+                        "LEFT JOIN Booking b ON b.room.id = r.id " +
+                        "AND b.status != 'CANCELLED' " +
+                        "AND b.checkInDate < :checkOutDate " +
+                        "AND b.checkOutDate > :checkInDate " +
+                        "WHERE r.hotel.id = :hotelId AND r.isAvailable = true")
+        Long countAvailableRoomsForHotel(Long hotelId, LocalDateTime checkInDate, LocalDateTime checkOutDate);
+
+        /**
+         * Lấy danh sách hotelId có phòng còn trống trong khoảng ngày
+         */
+        @Query("SELECT DISTINCT r.hotel.id FROM Room r " +
+                        "WHERE r.isAvailable = true " +
+                        "AND r.quantity > (SELECT COUNT(b) FROM Booking b " +
+                        "   WHERE b.room.id = r.id " +
+                        "   AND b.status != 'CANCELLED' " +
+                        "   AND b.checkInDate < :checkOutDate " +
+                        "   AND b.checkOutDate > :checkInDate)")
+        List<Long> findHotelIdsWithAvailableRooms(LocalDateTime checkInDate, LocalDateTime checkOutDate);
 }

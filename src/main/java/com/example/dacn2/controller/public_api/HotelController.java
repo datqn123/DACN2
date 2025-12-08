@@ -10,12 +10,16 @@ import com.example.dacn2.service.entity.HotelService;
 import com.example.dacn2.service.user_service.SearchHotelService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -26,23 +30,14 @@ public class HotelController {
         private SearchHotelService searchHotelService;
         @Autowired
         private HotelService hotelService;
+        @Autowired
+        private com.example.dacn2.repository.auth.AccountRepositoryInterface accountRepository;
 
-        // get top 10 location common
         @GetMapping("/top-10-locations")
         public ApiResponse<List<LocationSearchResult>> findTopDestinations() {
                 return ApiResponse.<List<LocationSearchResult>>builder()
                                 .result(searchHotelService.findTopDestinations())
                                 .message("Get 10 location")
-                                .build();
-        }
-
-        // API cho thanh tìm kiếm (Dropdown)
-        // GET: /api/public/search/locations?keyword=Da
-        @GetMapping("/search/locations")
-        public ApiResponse<List<LocationSearchResult>> searchLocations(@RequestParam(required = false) String keyword) {
-                return ApiResponse.<List<LocationSearchResult>>builder()
-                                .result(searchHotelService.searchLocationDropdown(keyword))
-                                .message("Lấy kết quả tìm kiếm thành công")
                                 .build();
         }
 
@@ -62,7 +57,10 @@ public class HotelController {
                         @RequestParam(required = false) Integer maxStarRating,
                         @RequestParam(required = false) HotelType hotelType,
                         @RequestParam(required = false) String sortByPrice,
-                        @RequestParam(required = false, defaultValue = "0") Integer page) {
+                        @RequestParam(required = false, defaultValue = "0") Integer page,
+                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkInDate,
+                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkOutDate,
+                        @AuthenticationPrincipal UserDetails userDetails) {
 
                 HotelFilterRequest filter = HotelFilterRequest.builder()
                                 .locationSlug(slug)
@@ -73,11 +71,24 @@ public class HotelController {
                                 .hotelType(hotelType)
                                 .sortByPrice(sortByPrice)
                                 .page(page)
+                                .checkInDate(checkInDate)
+                                .checkOutDate(checkOutDate)
                                 .build();
 
+                Long accountId = getAccountId(userDetails);
+                HotelSearchResponse result = searchHotelService.searchHotelsAndSaveHistory(filter, accountId);
+
                 return ApiResponse.<HotelSearchResponse>builder()
-                                .result(searchHotelService.searchHotelsWithFilter(filter))
+                                .result(result)
                                 .message("Tìm kiếm khách sạn thành công")
                                 .build();
+        }
+
+        private Long getAccountId(UserDetails userDetails) {
+                if (userDetails == null)
+                        return null;
+                return accountRepository.findByEmail(userDetails.getUsername())
+                                .map(account -> account.getId())
+                                .orElse(null);
         }
 }

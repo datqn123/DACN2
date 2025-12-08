@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.dacn2.dto.request.BookingRequest;
 import com.example.dacn2.dto.request.PassengerRequest;
+import com.example.dacn2.dto.response.BookingResponse;
 import com.example.dacn2.dto.response.VoucherResponse;
 import com.example.dacn2.entity.User.Account;
 import com.example.dacn2.entity.booking.Booking;
@@ -24,11 +25,11 @@ import com.example.dacn2.entity.hotel.Room;
 import com.example.dacn2.entity.tour.TourSchedule;
 import com.example.dacn2.entity.voucher.DiscountType;
 import com.example.dacn2.entity.voucher.Voucher;
+import com.example.dacn2.repository.AccountRepository;
 import com.example.dacn2.repository.BookingRepository;
 import com.example.dacn2.repository.PassengerRepository;
 import com.example.dacn2.repository.hotel.RoomRepository;
 import com.example.dacn2.repository.voucher.VoucherRepository;
-import com.example.dacn2.service.entity.AccountRepository;
 
 import org.springframework.transaction.annotation.Transactional;
 
@@ -279,5 +280,56 @@ public class BookingService {
             passengers.add(p);
         }
         passengerRepository.saveAll(passengers);
+    }
+
+    // ========== PAYMENT INTEGRATION ==========
+
+    /**
+     * Xác nhận thanh toán thành công - cập nhật trạng thái booking
+     */
+    @Transactional
+    public void confirmPayment(Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng: " + bookingId));
+
+        booking.setStatus(BookingStatus.CONFIRMED);
+        booking.setIsPaid(true);
+        bookingRepository.save(booking);
+
+        System.out.println("✅ Đã xác nhận thanh toán booking ID: " + bookingId);
+    }
+
+    /**
+     * Lấy danh sách đơn hàng của user đang đăng nhập
+     */
+    public List<BookingResponse> getMyBookings() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Account user = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User không tồn tại"));
+
+        List<Booking> bookings = bookingRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
+        return bookings.stream()
+                .map(BookingResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Tra cứu đơn hàng theo mã booking code
+     */
+    public BookingResponse lookupByCode(String bookingCode) {
+        Booking booking = bookingRepository.findByBookingCode(bookingCode);
+        if (booking == null) {
+            throw new RuntimeException("Không tìm thấy đơn hàng với mã: " + bookingCode);
+        }
+        return BookingResponse.fromEntity(booking);
+    }
+
+    /**
+     * Lấy thông tin booking theo ID
+     */
+    public BookingResponse getBookingById(Long id) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng: " + id));
+        return BookingResponse.fromEntity(booking);
     }
 }

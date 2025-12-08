@@ -1,4 +1,4 @@
-package com.example.dacn2.service.entity;
+package com.example.dacn2.repository;
 
 import java.util.Optional;
 

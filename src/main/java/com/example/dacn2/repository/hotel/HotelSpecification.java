@@ -1,26 +1,26 @@
 package com.example.dacn2.repository.hotel;
 
 import com.example.dacn2.dto.request.hotel.HotelFilterRequest;
+import com.example.dacn2.entity.booking.Booking;
+import com.example.dacn2.entity.booking.BookingStatus;
 import com.example.dacn2.entity.hotel.Hotel;
 import com.example.dacn2.entity.hotel.Room;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Specification class để xây dựng dynamic query cho Hotel
  * Hỗ trợ filter linh hoạt với các điều kiện optional
- * Filter theo giá phòng (Room.price) thay vì pricePerNightFrom
+ * Bao gồm Real-time Availability check
  */
 public class HotelSpecification {
 
-    /**
-     * Tạo Specification từ HotelFilterRequest
-     * Các điều kiện sẽ được AND với nhau
-     */
     public static Specification<Hotel> withFilters(HotelFilterRequest filter) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -32,8 +32,7 @@ public class HotelSpecification {
                         filter.getLocationSlug().toLowerCase()));
             }
 
-            // Filter theo khoảng giá phòng (minPrice) - Tìm hotel có giá phòng thấp nhất >=
-            // minPrice
+            // Filter theo khoảng giá phòng (minPrice)
             if (filter.getMinPrice() != null && query != null) {
                 Subquery<Double> minRoomPriceSubquery = query.subquery(Double.class);
                 var roomRoot = minRoomPriceSubquery.from(Room.class);
@@ -44,8 +43,7 @@ public class HotelSpecification {
                         minRoomPriceSubquery, filter.getMinPrice()));
             }
 
-            // Filter theo khoảng giá phòng (maxPrice) - Tìm hotel có giá phòng thấp nhất <=
-            // maxPrice
+            // Filter theo khoảng giá phòng (maxPrice)
             if (filter.getMaxPrice() != null && query != null) {
                 Subquery<Double> minRoomPriceSubquery = query.subquery(Double.class);
                 var roomRoot = minRoomPriceSubquery.from(Room.class);
@@ -72,6 +70,39 @@ public class HotelSpecification {
             if (filter.getHotelType() != null) {
                 predicates.add(criteriaBuilder.equal(
                         root.get("type"), filter.getHotelType()));
+            }
+
+            // Chỉ hiện hotel có ít nhất 1 phòng còn trống trong khoảng ngày
+            if (filter.getCheckInDate() != null && filter.getCheckOutDate() != null && query != null) {
+                LocalDateTime checkIn = filter.getCheckInDate().atStartOfDay();
+                LocalDateTime checkOut = filter.getCheckOutDate().atStartOfDay();
+
+                // Subquery: Đếm số booking overlap với khoảng ngày yêu cầu
+                Subquery<Long> bookedCountSubquery = query.subquery(Long.class);
+                Root<Booking> bookingRoot = bookedCountSubquery.from(Booking.class);
+
+                bookedCountSubquery.select(criteriaBuilder.count(bookingRoot))
+                        .where(
+                                // Join ngược từ Booking -> Room -> Hotel
+                                criteriaBuilder.equal(bookingRoot.get("room").get("hotel"), root),
+                                // Chỉ đếm phòng available
+                                criteriaBuilder.isTrue(bookingRoot.get("room").get("isAvailable")),
+                                // Dùng Enum thay vì String
+                                criteriaBuilder.notEqual(bookingRoot.get("status"), BookingStatus.CANCELLED),
+                                criteriaBuilder.lessThan(bookingRoot.get("checkInDate"), checkOut),
+                                criteriaBuilder.greaterThan(bookingRoot.get("checkOutDate"), checkIn));
+
+                // Subquery: Tổng số phòng available
+                Subquery<Long> totalRoomsSubquery = query.subquery(Long.class);
+                Root<Room> roomRoot2 = totalRoomsSubquery.from(Room.class);
+                totalRoomsSubquery.select(criteriaBuilder.coalesce(
+                        criteriaBuilder.sum(roomRoot2.get("quantity")), 0L))
+                        .where(
+                                criteriaBuilder.equal(roomRoot2.get("hotel"), root),
+                                criteriaBuilder.isTrue(roomRoot2.get("isAvailable")));
+
+                // Điều kiện: Tổng phòng > Số đã đặt
+                predicates.add(criteriaBuilder.greaterThan(totalRoomsSubquery, bookedCountSubquery));
             }
 
             // Loại bỏ duplicate

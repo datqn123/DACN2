@@ -3,6 +3,8 @@ package com.example.dacn2.dto.request.hotel;
 import com.example.dacn2.entity.hotel.HotelType;
 import lombok.*;
 
+import java.time.LocalDate;
+
 /**
  * DTO chứa các tham số filter cho tìm kiếm khách sạn
  * Tất cả các field đều optional, có thể kết hợp với nhau
@@ -26,4 +28,8 @@ public class HotelFilterRequest {
     private String sortByPrice; // Sắp xếp theo giá: "ASC" (thấp -> cao), "DESC" (cao -> thấp)
 
     private Integer page; // Số trang (bắt đầu từ 0, mặc định = 0)
+
+    // === REAL-TIME AVAILABILITY ===
+    private LocalDate checkInDate; // Ngày nhận phòng
+    private LocalDate checkOutDate; // Ngày trả phòng
 }
