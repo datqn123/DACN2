@@ -1,0 +1,99 @@
+{
+    "info": {
+        "name": "ViewHistory API Tests",
+        "description": "Test các API ViewHistory"
+    },
+    "item": [
+        {
+            "name": "1. Track View - Từ Search",
+            "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/public/view-history/track?hotelId=1&source=SEARCH&searchQuery=resort%20đà%20nẵng",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "2. Track View - Từ Homepage",
+            "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/public/view-history/track?hotelId=5&source=HOMEPAGE",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "3. Track View - Từ Recommendation",
+            "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/public/view-history/track?hotelId=10&source=RECOMMENDATION",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "4. Update Duration - Xem 120 giây",
+            "request": {
+                "method": "PUT",
+                "url": "http://localhost:8080/api/public/view-history/1/duration?seconds=120",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "5. Mark Clicked Booking",
+            "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/public/view-history/action/booking?hotelId=1",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "6. Mark Clicked Favorite",
+            "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/public/view-history/action/favorite?hotelId=5",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "8. Get Recent Views",
+            "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/public/view-history/recent?page=0&size=10",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}"
+                    }
+                ]
+            }
+        }
+    ]
+}
