@@ -13,7 +13,6 @@ import com.example.dacn2.service.entity.FlightService;
 
 @RestController
 @RequestMapping("/api/public/flights")
-@PreAuthorize("hasRole('USER')")
 public class FlightController {
 
     @Autowired

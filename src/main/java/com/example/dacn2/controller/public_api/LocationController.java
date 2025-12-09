@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/public/locations")
-@PreAuthorize("hasRole('USER')")
 public class LocationController {
 
     @Autowired

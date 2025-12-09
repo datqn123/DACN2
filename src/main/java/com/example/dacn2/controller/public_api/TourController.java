@@ -13,7 +13,6 @@ import com.example.dacn2.service.entity.TourService;
 
 @RestController
 @RequestMapping("/api/public/tours")
-@PreAuthorize("hasRole('USER')")
 public class TourController {
 
     @Autowired

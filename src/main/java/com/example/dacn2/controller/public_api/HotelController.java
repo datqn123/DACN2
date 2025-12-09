@@ -25,7 +25,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/public/hotels")
-@PreAuthorize("hasRole('USER')")
 public class HotelController {
 
         @Autowired

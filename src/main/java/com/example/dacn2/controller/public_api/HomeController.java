@@ -23,7 +23,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/public/home") // Prefix chung cho trang chủ
-@PreAuthorize("hasRole('USER')")
 public class HomeController {
 
     @Autowired

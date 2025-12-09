@@ -16,7 +16,6 @@ import com.example.dacn2.service.entity.VoucherService;
 
 @RestController
 @RequestMapping("/api/public/vouchers")
-@PreAuthorize("hasRole('USER')")
 public class VoucherController {
 
     @Autowired

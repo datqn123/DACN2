@@ -15,7 +15,6 @@ import com.example.dacn2.service.entity.RoomService;
 
 @RestController
 @RequestMapping("/api/public/rooms")
-@PreAuthorize("hasRole('USER')")
 public class RoomController {
     @Autowired
     private RoomService roomService;
