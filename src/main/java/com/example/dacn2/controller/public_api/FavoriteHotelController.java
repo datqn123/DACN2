@@ -4,6 +4,8 @@ import com.example.dacn2.dto.ApiResponse;
 import com.example.dacn2.dto.response.home.HotelCardResponse;
 import com.example.dacn2.service.entity.FavoriteHotelService;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +16,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/public/favorites/hotels")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('USER')")
 public class FavoriteHotelController {
 
         private final FavoriteHotelService favoriteHotelService;

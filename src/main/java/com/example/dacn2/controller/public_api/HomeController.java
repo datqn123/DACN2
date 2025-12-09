@@ -13,6 +13,7 @@ import com.example.dacn2.service.page.HomeService;
 import com.example.dacn2.service.user_service.SearchHotelService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -22,6 +23,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/public/home") // Prefix chung cho trang chủ
+@PreAuthorize("hasRole('USER')")
 public class HomeController {
 
     @Autowired

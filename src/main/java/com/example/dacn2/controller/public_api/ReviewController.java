@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/public/reviews")
+@PreAuthorize("hasRole('USER')")
 public class ReviewController {
 
     @Autowired

@@ -6,12 +6,14 @@ import com.example.dacn2.entity.User.ViewHistory;
 import com.example.dacn2.service.entity.ViewHistoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/public/view-history")
+@PreAuthorize("hasRole('USER')")
 @RequiredArgsConstructor
 public class ViewHistoryController {
 
