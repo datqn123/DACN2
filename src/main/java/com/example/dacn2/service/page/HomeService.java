@@ -49,11 +49,11 @@ public class HomeService {
     }
 
     public List<FlightCardResponse> getFeaturedFlights() {
-        Pageable top5Flights = PageRequest.of(0, 10);
+        Pageable top5Flights = PageRequest.of(0, 5);
         List<Flight> flights = flightRepository.findTopDeals(top5Flights);
         return flights.stream()
                 .distinct()
-                .limit(10)
+                .limit(5)
                 .map(this::convertToCard)
                 .collect(Collectors.toList());
     }
@@ -158,7 +158,8 @@ public class HomeService {
                 .orElse(0.0);
         dto.setMinPrice(minPrice);
 
-        dto.setImage(flight.getImage()); // Ảnh địa điểm/chuyến bay
+        // Lấy ảnh của điểm đến (location của sân bay đến)
+        dto.setImage(flight.getArrivalAirport().getLocation().getThumbnail());
 
         return dto;
     }

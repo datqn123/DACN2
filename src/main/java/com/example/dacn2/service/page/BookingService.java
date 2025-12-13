@@ -333,6 +333,22 @@ public class BookingService {
     }
 
     /**
+     * Lấy danh sách khách sạn đã đặt (tất cả booking HOTEL)
+     */
+    public List<BookingResponse> getMyHotelBookings() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Account user = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User không tồn tại"));
+
+        List<Booking> bookings = bookingRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
+        return bookings.stream()
+                // Check nếu type = HOTEL hoặc (type = null và có room thì cũng là hotel)
+                .filter(b -> b.getType() == BookingType.HOTEL || (b.getType() == null && b.getRoom() != null))
+                .map(BookingResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Tra cứu đơn hàng theo mã booking code
      */
     public BookingResponse lookupByCode(String bookingCode) {

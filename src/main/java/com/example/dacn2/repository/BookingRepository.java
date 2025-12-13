@@ -48,4 +48,12 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                         "   AND b.checkInDate < :checkOutDate " +
                         "   AND b.checkOutDate > :checkInDate)")
         List<Long> findHotelIdsWithAvailableRooms(LocalDateTime checkInDate, LocalDateTime checkOutDate);
+
+        // Kiểm tra user đã từng đặt phòng ở hotel này và đã thanh toán chưa
+        @Query("SELECT COUNT(b) > 0 FROM Booking b " +
+                        "WHERE b.user.id = :userId " +
+                        "AND b.room.hotel.id = :hotelId " +
+                        "AND b.status = 'CONFIRMED' " +
+                        "AND b.isPaid = true")
+        boolean hasUserBookedHotel(Long userId, Long hotelId);
 }
