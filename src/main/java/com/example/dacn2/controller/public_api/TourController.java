@@ -1,5 +1,7 @@
 package com.example.dacn2.controller.public_api;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,4 +28,11 @@ public class TourController {
                 .build();
     }
 
+    @GetMapping
+    public ApiResponse<List<Tour>> getAll() {
+        return ApiResponse.<List<Tour>>builder()
+                .result(tourService.getAll())
+                .message("Lấy danh sách tour thành công")
+                .build();
+    }
 }

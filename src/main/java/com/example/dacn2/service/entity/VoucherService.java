@@ -97,6 +97,14 @@ public class VoucherService {
                 .toList();
     }
 
+    public List<VoucherCardResponse> getVoucherToFlightPage() {
+        Pageable pageable = PageRequest.of(0, 5);
+        List<Voucher> vouchers = voucherRepository.get5VoucherForFlightPage(pageable);
+        return vouchers.stream()
+                .map(this::toCardResponse)
+                .toList();
+    }
+
     private VoucherCardResponse toCardResponse(Voucher voucher) {
         return VoucherCardResponse.builder()
                 .id(voucher.getId())

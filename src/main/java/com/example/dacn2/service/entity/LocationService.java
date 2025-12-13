@@ -1,6 +1,7 @@
 package com.example.dacn2.service.entity;
 
 import com.example.dacn2.dto.request.location.LocationRequest;
+import com.example.dacn2.dto.response.DropdownLocationResponse;
 import com.example.dacn2.entity.Location;
 import com.example.dacn2.repository.location.LocationInterfaceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,6 +82,10 @@ public class LocationService {
     public List<Location> getFeaturedLocationsToHotelPage() {
         Pageable pageable = PageRequest.of(0, 10);
         return locationRepository.getFeaturedLocationsToHotelPage(pageable);
+    }
+
+    public List<DropdownLocationResponse> getDropdownLocations() {
+        return locationRepository.getDropdownLocations();
     }
 
     // Hàm phụ trợ: Map dữ liệu từ DTO sang Entity

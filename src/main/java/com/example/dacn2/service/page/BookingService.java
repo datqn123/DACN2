@@ -28,6 +28,7 @@ import com.example.dacn2.entity.voucher.Voucher;
 import com.example.dacn2.repository.AccountRepository;
 import com.example.dacn2.repository.BookingRepository;
 import com.example.dacn2.repository.PassengerRepository;
+import com.example.dacn2.repository.flight.FlightSeatRepository;
 import com.example.dacn2.repository.hotel.RoomRepository;
 import com.example.dacn2.repository.voucher.VoucherRepository;
 
@@ -46,6 +47,12 @@ public class BookingService {
     private AccountRepository accountRepository;
     @Autowired
     private RoomRepository roomRepository;
+    @Autowired
+    private FlightSeatRepository flightSeatRepository;
+
+    // Giá cố định cho dịch vụ bổ sung (có thể đưa vào config hoặc DB sau)
+    private static final double TRAVEL_INSURANCE_PRICE = 99000; // VNĐ/khách
+    private static final double DELAY_INSURANCE_PRICE = 50000; // VNĐ/khách
 
     public List<VoucherResponse> getVouchersForBooking(Long hotelId, Double totalAmount) {
         // 1. Query tìm voucher phù hợp
@@ -76,8 +83,7 @@ public class BookingService {
 
     @Transactional(rollbackFor = Exception.class)
     public Booking createBooking(BookingRequest request) {
-        // 1. Lấy User đang đăng nhập
-
+        // check user
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Account user = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Vui lòng đăng nhập để đặt vé!"));
@@ -92,26 +98,26 @@ public class BookingService {
         booking.setStatus(BookingStatus.PENDING); // Mới tạo là Chờ thanh toán
         booking.setIsPaid(false);
 
-        // 2. Xử lý theo từng loại dịch vụ (Tính giá gốc)
+        // xử lý theo từng service
         double totalPrice = 0;
         switch (request.getType()) {
             case HOTEL -> totalPrice = processHotel(request, booking);
-            // case FLIGHT -> totalPrice = processFlight(request, booking);
-            // case TOUR -> totalPrice = processTour(request, booking);
+            case FLIGHT -> totalPrice = processFlight(request, booking);
             default -> throw new RuntimeException("Loại dịch vụ không hợp lệ");
         }
         booking.setTotalPrice(totalPrice);
-        // 3. Xử lý Voucher (Nếu có)
+        // nếu user dùng vocuher
         applyVoucher(request.getVoucherCode(), booking, totalPrice);
 
-        // 4. Lưu Booking trước để có ID
+        // tạo booking để lấy id cho thanh toán
         Booking savedBooking = bookingRepository.save(booking);
 
-        // 5. Lưu danh sách hành khách (Passengers)
+        // save passenger
         savePassengers(request.getPassengers(), savedBooking);
         return savedBooking;
     }
 
+    // xử lý hotel
     private double processHotel(BookingRequest request, Booking booking) {
         Room room = roomRepository.findById(request.getRoomId())
                 .orElseThrow(() -> new RuntimeException("Phòng không tồn tại"));
@@ -148,72 +154,50 @@ public class BookingService {
         return room.getPrice() * nights;
     }
 
-    // ========================================================================
-    // LOGIC XỬ LÝ VÉ MÁY BAY (FLIGHT)
-    // ========================================================================
-    // private double processFlight(BookingRequest request, Booking booking) {
-    // FlightSeat seat = flightSeatRepository.findById(request.getFlightSeatId())
-    // .orElseThrow(() -> new RuntimeException("Hạng vé không tồn tại"));
+    // xử lý máy bay
+    private double processFlight(BookingRequest request, Booking booking) {
+        // kiểm tra ghế
+        FlightSeat flightSeat = flightSeatRepository.findById(request.getFlightSeatId())
+                .orElseThrow(() -> new RuntimeException("Hạng vé không tồn tại"));
 
-    // int passengerCount = request.getPassengers().size();
-    // if (passengerCount <= 0) throw new RuntimeException("Phải có ít nhất 1 hành
-    // khách");
+        int quantity = request.getQuantity();
+        if (quantity <= 0)
+            quantity = 1;
 
-    // // Kiểm tra ghế trống
-    // if (seat.getAvailableQuantity() < passengerCount) {
-    // throw new RuntimeException("Không đủ ghế trống! Chỉ còn " +
-    // seat.getAvailableQuantity() + " ghế.");
-    // }
+        if (flightSeat.getAvailableQuantity() < quantity) {
+            throw new RuntimeException("Hạng vé này chỉ còn " + flightSeat.getAvailableQuantity() + " chỗ!");
+        }
 
-    // // Trừ tồn kho ghế (Giữ chỗ)
-    // seat.setAvailableQuantity(seat.getAvailableQuantity() - passengerCount);
-    // flightSeatRepository.save(seat);
+        flightSeat.setAvailableQuantity(flightSeat.getAvailableQuantity() - quantity);
+        flightSeatRepository.save(flightSeat);
 
-    // booking.setFlight(seat.getFlight());
-    // booking.setFlightSeat(seat);
-    // booking.setQuantity(passengerCount);
+        // lưu các thông tin ghế vào booking
+        booking.setFlight(flightSeat.getFlight());
+        booking.setFlightSeat(flightSeat);
+        booking.setQuantity(quantity);
+        booking.setType(BookingType.FLIGHT);
 
-    // return seat.getPrice() * passengerCount;
-    // }
+        // tính tiền cho ghế
+        double basePrice = flightSeat.getPrice() * quantity;
+        double insurancePrice = 0;
 
-    // ========================================================================
-    // LOGIC XỬ LÝ TOUR
-    // ========================================================================
-    // private double processTour(BookingRequest request, Booking booking) {
-    // TourSchedule schedule =
-    // tourScheduleRepository.findById(request.getTourScheduleId())
-    // .orElseThrow(() -> new RuntimeException("Lịch khởi hành không tồn tại"));
+        // bảo hiểm chuyến đi
+        if (Boolean.TRUE.equals(request.getHasTravelInsurance())) {
+            insurancePrice += TRAVEL_INSURANCE_PRICE * quantity;
+        }
+        // bảo hiểm trễ
+        if (Boolean.TRUE.equals(request.getHasDelayInsurance())) {
+            insurancePrice += DELAY_INSURANCE_PRICE * quantity;
+        }
 
-    // int peopleCount = request.getPassengers().size();
-    // if (peopleCount <= 0) throw new RuntimeException("Phải có ít nhất 1 khách");
+        // hành lý ký gửi thêm (FE gửi giá lên)
+        double baggagePrice = request.getExtraBaggagePrice();
 
-    // if (schedule.getAvailableSeats() < peopleCount) {
-    // throw new RuntimeException("Tour đã hết chỗ!");
-    // }
+        // trả về total price
+        return basePrice + insurancePrice + baggagePrice;
+    }
 
-    // // Trừ chỗ trống
-    // schedule.setAvailableSeats(schedule.getAvailableSeats() - peopleCount);
-    // tourScheduleRepository.save(schedule);
-
-    // booking.setTour(schedule.getTour());
-    // booking.setTourSchedule(schedule);
-    // booking.setQuantity(peopleCount);
-
-    // // Tính tiền (Phân biệt Người lớn / Trẻ em)
-    // double totalTourPrice = 0;
-    // for (PassengerRequest p : request.getPassengers()) {
-    // if ("CHILD".equalsIgnoreCase(p.getType())) {
-    // totalTourPrice += schedule.getTour().getPriceChild();
-    // } else {
-    // totalTourPrice += schedule.getTour().getPriceAdult();
-    // }
-    // }
-    // return totalTourPrice;
-    // }
-
-    // ========================================================================
-    // LOGIC ÁP DỤNG VOUCHER (VALIDATION)
-    // ========================================================================
+    // dùng voucher
     private void applyVoucher(String code, Booking booking, double totalPrice) {
         if (code == null || code.trim().isEmpty()) {
             booking.setDiscountAmount(0.0);
@@ -224,7 +208,6 @@ public class BookingService {
         Voucher voucher = voucherRepository.findByCode(code)
                 .orElseThrow(() -> new RuntimeException("Mã giảm giá không tồn tại"));
 
-        // Validate Voucher
         LocalDateTime now = LocalDateTime.now();
         if (!voucher.getIsActive())
             throw new RuntimeException("Voucher đang bị khóa");
@@ -235,9 +218,7 @@ public class BookingService {
         if (totalPrice < voucher.getMinOrderValue())
             throw new RuntimeException("Đơn hàng chưa đạt giá trị tối thiểu để dùng voucher này");
 
-        // TODO: Check thêm điều kiện Scope (Hotel Only, Tour Only...) nếu cần kỹ hơn
-
-        // Tính toán giảm giá
+        // tính giảm giá
         double discount = 0;
         if (voucher.getDiscountType() == DiscountType.FIXED_AMOUNT) {
             discount = voucher.getDiscountValue();
@@ -248,7 +229,7 @@ public class BookingService {
             }
         }
 
-        // Tăng lượt dùng voucher
+        // tăng lượt dùng voucher
         voucher.setUsageCount(voucher.getUsageCount() + 1);
         voucherRepository.save(voucher);
 
@@ -284,9 +265,7 @@ public class BookingService {
 
     // ========== PAYMENT INTEGRATION ==========
 
-    /**
-     * Xác nhận thanh toán thành công - cập nhật trạng thái booking
-     */
+    // xác nhận thanh toán
     @Transactional
     public void confirmPayment(Long bookingId) {
         Booking booking = bookingRepository.findById(bookingId)

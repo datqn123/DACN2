@@ -2,6 +2,8 @@ package com.example.dacn2.service.entity;
 
 import com.example.dacn2.dto.request.flight.FlightRequest;
 import com.example.dacn2.dto.request.flight.FlightSeatRequest;
+import com.example.dacn2.dto.response.FlightSeatResponse;
+import com.example.dacn2.dto.response.FligthCardResponse;
 import com.example.dacn2.entity.flight.*;
 import com.example.dacn2.repository.flight.*;
 import com.example.dacn2.service.user_service.FileUploadService;
@@ -74,6 +76,112 @@ public class FlightService {
             throw new RuntimeException("Chuyến bay không tồn tại");
         }
         flightRepository.deleteById(id);
+    }
+
+    // Hiển thị card chuyến bay - Lấy các chuyến bay sắp khởi hành (từ thời điểm
+    // hiện tại)
+    public List<Flight> getFlightsForCard(int limit) {
+        return flightRepository.findUpcomingFlights(
+                java.time.LocalDateTime.now(),
+                org.springframework.data.domain.PageRequest.of(0, limit));
+    }
+
+    // Lấy danh sách FlightCardResponse cho hiển thị
+    public List<FligthCardResponse> getFlightCardsForDisplay(int limit) {
+        List<Flight> flights = getFlightsForCard(limit);
+        return flights.stream()
+                .map(this::convertToCardResponse)
+                .toList();
+    }
+
+    // tìm kiếm chuyến bay theo bộ lọc (điểm đi, điểm đến, ngày bay, khoảng giá,
+    // hãng bay)
+    public List<FligthCardResponse> searchFlightsForDisplay(
+            Long departureLocationId,
+            Long arrivalLocationId,
+            java.time.LocalDate departureDate,
+            Double minPrice,
+            Double maxPrice,
+            java.util.List<Long> airlineIds) {
+
+        java.time.LocalDateTime startOfDay = departureDate != null ? departureDate.atStartOfDay() : null;
+        java.time.LocalDateTime endOfDay = departureDate != null ? departureDate.plusDays(1).atStartOfDay() : null;
+
+        List<Flight> flights = flightRepository.searchFlights(
+                departureLocationId,
+                arrivalLocationId,
+                startOfDay,
+                endOfDay,
+                minPrice,
+                maxPrice,
+                airlineIds);
+
+        return flights.stream()
+                .map(this::convertToCardResponse)
+                .toList();
+    }
+
+    // Lấy danh sách hạng ghế cho chuyến bay
+    public List<FlightSeatResponse> getSeatClasses(Long flightId) {
+        return flightRepository.getSeatClasses(flightId).stream()
+                .map(this::convertToSeatResponse)
+                .toList();
+    }
+
+    private FlightSeatResponse convertToSeatResponse(FlightSeat flightSeat) {
+        return FlightSeatResponse.builder()
+                .seatClass(flightSeat.getSeatClass())
+                .price(flightSeat.getPrice())
+                .availableQuantity(flightSeat.getAvailableQuantity())
+                .cabinBaggage(flightSeat.getCabinBaggage())
+                .checkedBaggage(flightSeat.getCheckedBaggage())
+                .isRefundable(flightSeat.getIsRefundable())
+                .isChangeable(flightSeat.getIsChangeable())
+                .hasMeal(flightSeat.getHasMeal())
+                .build();
+    }
+
+    private FligthCardResponse convertToCardResponse(Flight flight) {
+        java.time.format.DateTimeFormatter timeFormatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm");
+        java.time.format.DateTimeFormatter dateFormatter = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+        Double lowestPrice = flight.getFlightSeats() != null
+                ? flight.getFlightSeats().stream()
+                        .filter(seat -> seat.getAvailableQuantity() != null && seat.getAvailableQuantity() > 0)
+                        .mapToDouble(FlightSeat::getPrice)
+                        .min()
+                        .orElse(0.0)
+                : 0.0;
+
+        return FligthCardResponse.builder()
+                .id(flight.getId())
+
+                .airlineName(flight.getAirline() != null ? flight.getAirline().getName() : null)
+                .airlineLogo(flight.getAirline() != null ? flight.getAirline().getLogoUrl() : null)
+
+                .departureCode(flight.getDepartureAirport() != null ? flight.getDepartureAirport().getCode() : null)
+                .departureCity(
+                        flight.getDepartureAirport() != null && flight.getDepartureAirport().getLocation() != null
+                                ? flight.getDepartureAirport().getLocation().getName()
+                                : null)
+
+                .arrivalCode(flight.getArrivalAirport() != null ? flight.getArrivalAirport().getCode() : null)
+                .arrivalCity(flight.getArrivalAirport() != null && flight.getArrivalAirport().getLocation() != null
+                        ? flight.getArrivalAirport().getLocation().getName()
+                        : null)
+
+                .departureTime(
+                        flight.getDepartureTime() != null ? flight.getDepartureTime().format(timeFormatter) : null)
+                .departureTime(
+                        flight.getDepartureTime() != null ? flight.getDepartureTime().format(timeFormatter) : null)
+                .arrivalTime(flight.getArrivalTime() != null ? flight.getArrivalTime().format(timeFormatter) : null)
+                .duration(flight.getDuration())
+                .flightDate(flight.getDepartureTime() != null ? flight.getDepartureTime().format(dateFormatter) : null)
+
+                .originalPrice(lowestPrice)
+
+                .flightNumber(flight.getFlightNumber())
+                .build();
     }
 
     // --- HÀM PHỤ TRỢ: Map dữ liệu từ Request sang Entity ---

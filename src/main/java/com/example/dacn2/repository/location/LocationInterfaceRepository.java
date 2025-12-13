@@ -1,5 +1,6 @@
 package com.example.dacn2.repository.location;
 
+import com.example.dacn2.dto.response.DropdownLocationResponse;
 import com.example.dacn2.dto.response.home.LocationSearchResult;
 import com.example.dacn2.entity.Location;
 import org.springframework.data.domain.Pageable;
@@ -53,4 +54,8 @@ public interface LocationInterfaceRepository extends JpaRepository<Location, Lon
 
         @Query("SELECT l FROM Location l WHERE l.type IN ('PROVINCE')")
         List<Location> getFeaturedLocationsToHotelPage(Pageable pageable);
+
+        // Dropdown cho search flight
+        @Query("SELECT new com.example.dacn2.dto.response.DropdownLocationResponse(l.id, l.name) FROM Location l")
+        List<DropdownLocationResponse> getDropdownLocations();
 }

@@ -1,11 +1,14 @@
 package com.example.dacn2.service.entity;
 
 import com.example.dacn2.dto.request.hotel.HotelRequest;
+import com.example.dacn2.dto.response.home.HotelCardResponse;
+import com.example.dacn2.dto.response.home.HotelSearchResponse;
 import com.example.dacn2.entity.hotel.HotelImage;
 import com.example.dacn2.entity.Location;
 import com.example.dacn2.entity.hotel.Amenity;
 import com.example.dacn2.entity.hotel.Hotel;
 import com.example.dacn2.entity.hotel.HotelView;
+import com.example.dacn2.entity.hotel.Room;
 import com.example.dacn2.repository.hotel.AmenityRepository;
 import com.example.dacn2.repository.hotel.HotelRepository;
 import com.example.dacn2.repository.location.LocationInterfaceRepository; // Hoặc LocationRepository tùy tên bạn đặt
@@ -13,6 +16,10 @@ import com.example.dacn2.service.user_service.FileUploadService;
 
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class HotelService {
@@ -37,6 +45,26 @@ public class HotelService {
     // 1. Lấy tất cả
     public List<Hotel> getAll() {
         return hotelRepository.findAll();
+    }
+
+    // 1.1. Lấy tất cả có phân trang (cho trang hotel listing)
+    public HotelSearchResponse getAllNavigate(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Hotel> hotelPage = hotelRepository.findAll(pageable);
+
+        List<HotelCardResponse> hotelCards = hotelPage.getContent().stream()
+                .map(this::convertToCard)
+                .collect(Collectors.toList());
+
+        return HotelSearchResponse.builder()
+                .hotels(hotelCards)
+                .currentPage(hotelPage.getNumber())
+                .totalPages(hotelPage.getTotalPages())
+                .totalElements(hotelPage.getTotalElements())
+                .pageSize(hotelPage.getSize())
+                .hasNext(hotelPage.hasNext())
+                .hasPrevious(hotelPage.hasPrevious())
+                .build();
     }
 
     // 2. Lấy chi tiết
@@ -94,8 +122,43 @@ public class HotelService {
         }
         hotelRepository.deleteById(id);
     }
+    // HELPER
 
-    // --- HÀM PHỤ TRỢ 1: Map thông tin cơ bản ---
+    private HotelCardResponse convertToCard(Hotel hotel) {
+        HotelCardResponse dto = new HotelCardResponse();
+        dto.setId(hotel.getId());
+        dto.setName(hotel.getName());
+        dto.setAddress(hotel.getAddress());
+        dto.setStarRating(hotel.getStarRating());
+
+        if (hotel.getLocation() != null) {
+            dto.setLocationName(hotel.getLocation().getName());
+        }
+
+        // Lấy ảnh đầu tiên làm thumbnail
+        if (hotel.getImages() != null && !hotel.getImages().isEmpty()) {
+            dto.setThumbnail(hotel.getImages().get(0).getImageUrl());
+        }
+
+        // Giá phòng thấp nhất
+        if (hotel.getPricePerNightFrom() != null) {
+            dto.setMinPrice(hotel.getPricePerNightFrom());
+        } else if (hotel.getRooms() != null && !hotel.getRooms().isEmpty()) {
+            double minPrice = hotel.getRooms().stream()
+                    .filter(room -> room.getPrice() != null && room.getIsAvailable())
+                    .mapToDouble(Room::getPrice)
+                    .min()
+                    .orElse(0.0);
+            dto.setMinPrice(minPrice);
+        }
+
+        if (hotel.getType() != null) {
+            dto.setHotelType(hotel.getType().toString());
+        }
+
+        return dto;
+    }
+
     private void mapBasicInfo(HotelRequest request, Hotel hotel) {
         hotel.setName(request.getName());
         hotel.setAddress(request.getAddress());
@@ -132,7 +195,6 @@ public class HotelService {
         }
     }
 
-    // --- HÀM PHỤ TRỢ 2: Xử lý ảnh (Upload & Gán) ---
     private void processImages(List<String> urlLinks, List<MultipartFile> files, Hotel hotel) throws IOException {
 
         // Lấy danh sách ảnh hiện tại (Nếu null thì tạo mới để tránh lỗi NullPointer)

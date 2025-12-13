@@ -34,4 +34,11 @@ public class VoucherController {
                 .result(voucherService.getVoucherToHotelPage())
                 .build();
     }
+
+    @GetMapping("/flight-page")
+    public ApiResponse<List<VoucherCardResponse>> getVoucherToFlightPage() {
+        return ApiResponse.<List<VoucherCardResponse>>builder()
+                .result(voucherService.getVoucherToFlightPage())
+                .build();
+    }
 }

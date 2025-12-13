@@ -49,6 +49,17 @@ public class HotelController {
                                 .build();
         }
 
+        // phân trang
+        @GetMapping
+        public ApiResponse<HotelSearchResponse> getAllNavigate(
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "12") int size) {
+                return ApiResponse.<HotelSearchResponse>builder()
+                                .result(hotelService.getAllNavigate(page, size))
+                                .message("Lấy danh sách khách sạn thành công")
+                                .build();
+        }
+
         @GetMapping("/search")
         public ApiResponse<HotelSearchResponse> searchHotels(
                         @RequestParam(required = false) String slug,

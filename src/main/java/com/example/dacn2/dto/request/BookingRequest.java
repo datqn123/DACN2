@@ -26,7 +26,13 @@ public class BookingRequest {
     private LocalDate checkInDate;
     private LocalDate checkOutDate;
 
-    // 4. Danh sách người đi
+    // 4. Dịch vụ bổ sung (Flight)
+    private Boolean hasTravelInsurance; // Bảo hiểm chuyến đi (99,000đ/khách)
+    private Boolean hasDelayInsurance; // Bảo hiểm trễ/hoãn bay (50,000đ/khách)
+    private String extraBaggageKg; // Hành lý ký gửi thêm: "0kg", "15kg", "23kg", "32kg", "50kg"
+    private Double extraBaggagePrice; // Giá hành lý (FE gửi lên): 0, 250000, 320000, 450000, 600000
+
+    // 5. Danh sách người đi
     // VD: [{name: "Nguyen Van A", type: "ADULT"}, {name: "Be B", type: "CHILD"}]
     private List<PassengerRequest> passengers;
 }

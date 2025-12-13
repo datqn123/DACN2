@@ -133,8 +133,22 @@ public class TourService {
         tour.setDuration(request.getDuration());
         tour.setPriceAdult(request.getPriceAdult());
         tour.setPriceChild(request.getPriceChild());
+        tour.setPrice(request.getPrice());
+        tour.setOriginalPrice(request.getOriginalPrice());
+        tour.setMaxPeople(request.getMaxPeople());
         tour.setDescription(request.getDescription());
         tour.setTransportation(request.getTransportation());
+
+        // Điểm nổi bật, Bao gồm, Không bao gồm (Chuyển List -> JSON String)
+        if (request.getHighlights() != null) {
+            tour.setHighlights(String.join("||", request.getHighlights()));
+        }
+        if (request.getIncludes() != null) {
+            tour.setIncludes(String.join("||", request.getIncludes()));
+        }
+        if (request.getExcludes() != null) {
+            tour.setExcludes(String.join("||", request.getExcludes()));
+        }
 
         if (request.getStartLocationId() != null) {
             Location startLoc = locationRepository.findById(request.getStartLocationId())

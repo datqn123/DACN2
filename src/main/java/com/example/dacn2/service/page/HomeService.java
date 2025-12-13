@@ -68,8 +68,8 @@ public class HomeService {
     }
 
     public List<TourCardResponse> getFeaturedTours() {
-        // KHÔNG CẦN Pageable nữa vì query đã có LIMIT 5
-        List<Tour> tours = tourRepository.findFeaturedTours();
+        Pageable top5Tours = PageRequest.of(0, 10);
+        List<Tour> tours = tourRepository.findFeaturedTours(top5Tours);
 
         return tours.stream()
                 .map(this::convertToTourCard)

@@ -1,6 +1,7 @@
 package com.example.dacn2.controller.public_api;
 
 import com.example.dacn2.dto.ApiResponse;
+import com.example.dacn2.dto.response.DropdownLocationResponse;
 import com.example.dacn2.entity.Location;
 import com.example.dacn2.service.entity.LocationService;
 
@@ -44,6 +45,14 @@ public class LocationController {
     public ApiResponse<List<Location>> getFeaturedLocationsToHotelPage() {
         return ApiResponse.<List<Location>>builder()
                 .result(locationService.getFeaturedLocationsToHotelPage())
+                .build();
+    }
+
+    // Dropdown cho search flight (chỉ trả về id và name)
+    @GetMapping("/dropdown")
+    public ApiResponse<List<DropdownLocationResponse>> getDropdownLocations() {
+        return ApiResponse.<List<DropdownLocationResponse>>builder()
+                .result(locationService.getDropdownLocations())
                 .build();
     }
 }
