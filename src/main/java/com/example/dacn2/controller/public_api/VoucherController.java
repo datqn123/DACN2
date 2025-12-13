@@ -41,4 +41,11 @@ public class VoucherController {
                 .result(voucherService.getVoucherToFlightPage())
                 .build();
     }
+
+    @GetMapping("/tour-page")
+    public ApiResponse<List<VoucherCardResponse>> getVoucherToTourPage() {
+        return ApiResponse.<List<VoucherCardResponse>>builder()
+                .result(voucherService.getVoucherToTourPage())
+                .build();
+    }
 }

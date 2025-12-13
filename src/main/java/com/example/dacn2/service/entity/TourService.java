@@ -1,10 +1,13 @@
 package com.example.dacn2.service.entity;
 
 import com.example.dacn2.dto.request.tour.*;
+import com.example.dacn2.dto.response.home.TourCardResponse;
+import com.example.dacn2.dto.response.home.TourSearchResponse;
 import com.example.dacn2.entity.*;
 import com.example.dacn2.entity.tour.*;
 import com.example.dacn2.repository.location.LocationInterfaceRepository;
 import com.example.dacn2.repository.tour.TourRepository;
+import com.example.dacn2.repository.tour.TourSpecification;
 import com.example.dacn2.service.user_service.FileUploadService;
 
 import jakarta.transaction.Transactional;
@@ -15,8 +18,12 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class TourService {
@@ -30,6 +37,85 @@ public class TourService {
 
     public List<Tour> getAll() {
         return tourRepository.findAll();
+    }
+
+    public Page<TourCardResponse> getAllPaged(Pageable pageable) {
+        return tourRepository.findAll(pageable).map(this::mapToTourCard);
+    }
+
+    private TourCardResponse mapToTourCard(Tour tour) {
+        return TourCardResponse.builder()
+                .id(tour.getId())
+                .title(tour.getTitle())
+                .slug(tour.getSlug())
+                .duration(tour.getDuration())
+                .startLocationName(tour.getStartLocation() != null ? tour.getStartLocation().getName() : null)
+                .destinationName(tour.getDestination() != null ? tour.getDestination().getName() : null)
+                .thumbnail(tour.getThumbnail())
+                .price(tour.getPrice())
+                .transportation(tour.getTransportation())
+                .build();
+    }
+
+    private static final int PAGE_SIZE = 20;
+
+    public TourSearchResponse searchToursWithFilter(TourFilterRequest filter) {
+        List<TourCardResponse> allResults = tourRepository.findAll(TourSpecification.withFilters(filter)).stream()
+                .map(this::mapToTourCard)
+                .toList();
+
+        allResults = sortByPrice(allResults, filter.getSortByPrice());
+
+        // Tính toán phân trang
+        int page = filter.getPage() != null ? filter.getPage() : 0;
+        int totalElements = allResults.size();
+        int totalPages = (int) Math.ceil((double) totalElements / PAGE_SIZE);
+
+        // Lấy kết quả cho trang hiện tại
+        int startIndex = page * PAGE_SIZE;
+        int endIndex = Math.min(startIndex + PAGE_SIZE, totalElements);
+
+        List<TourCardResponse> pagedResults;
+        if (startIndex >= totalElements) {
+            pagedResults = List.of(); // Trang không có dữ liệu
+        } else {
+            pagedResults = allResults.subList(startIndex, endIndex);
+        }
+
+        return TourSearchResponse.builder()
+                .tours(pagedResults)
+                .currentPage(page)
+                .totalPages(totalPages)
+                .totalElements(totalElements)
+                .pageSize(PAGE_SIZE)
+                .hasNext(page < totalPages - 1)
+                .hasPrevious(page > 0)
+                .build();
+    }
+
+    private List<TourCardResponse> sortByPrice(List<TourCardResponse> results, String sortByPrice) {
+        if (sortByPrice == null) {
+            return results;
+        }
+        Comparator<TourCardResponse> comparator;
+        if ("ASC".equalsIgnoreCase(sortByPrice)) {
+            comparator = (t1, t2) -> {
+                Double p1 = t1.getPrice() != null ? t1.getPrice() : Double.MAX_VALUE;
+                Double p2 = t2.getPrice() != null ? t2.getPrice() : Double.MAX_VALUE;
+                return p1.compareTo(p2);
+            };
+        } else if ("DESC".equalsIgnoreCase(sortByPrice)) {
+            // Giá cao đến thấp (null giá đẩy xuống cuối)
+            comparator = (t1, t2) -> {
+                Double p1 = t1.getPrice() != null ? t1.getPrice() : 0.0;
+                Double p2 = t2.getPrice() != null ? t2.getPrice() : 0.0;
+                return p2.compareTo(p1);
+            };
+        } else {
+            return results;
+        }
+
+        return results.stream().sorted(comparator).toList();
     }
 
     public Tour getById(Long id) {

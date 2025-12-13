@@ -30,6 +30,7 @@ import com.example.dacn2.repository.BookingRepository;
 import com.example.dacn2.repository.PassengerRepository;
 import com.example.dacn2.repository.flight.FlightSeatRepository;
 import com.example.dacn2.repository.hotel.RoomRepository;
+import com.example.dacn2.repository.tour.TourScheduleRepository;
 import com.example.dacn2.repository.voucher.VoucherRepository;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -49,6 +50,8 @@ public class BookingService {
     private RoomRepository roomRepository;
     @Autowired
     private FlightSeatRepository flightSeatRepository;
+    @Autowired
+    private TourScheduleRepository tourScheduleRepository;
 
     // Giá cố định cho dịch vụ bổ sung (có thể đưa vào config hoặc DB sau)
     private static final double TRAVEL_INSURANCE_PRICE = 99000; // VNĐ/khách
@@ -103,6 +106,7 @@ public class BookingService {
         switch (request.getType()) {
             case HOTEL -> totalPrice = processHotel(request, booking);
             case FLIGHT -> totalPrice = processFlight(request, booking);
+            case TOUR -> totalPrice = processTour(request, booking);
             default -> throw new RuntimeException("Loại dịch vụ không hợp lệ");
         }
         booking.setTotalPrice(totalPrice);
@@ -195,6 +199,42 @@ public class BookingService {
 
         // trả về total price
         return basePrice + insurancePrice + baggagePrice;
+    }
+
+    // xử lý tour
+    private double processTour(BookingRequest request, Booking booking) {
+        TourSchedule schedule = tourScheduleRepository.findById(request.getTourScheduleId())
+                .orElseThrow(() -> new RuntimeException("Lịch trình tour không tồn tại"));
+
+        int quantity = request.getQuantity();
+        if (quantity <= 0)
+            quantity = 1;
+
+        // Kiểm tra còn chỗ không
+        if (schedule.getAvailableSeats() < quantity) {
+            throw new RuntimeException("Chuyến tour này chỉ còn " + schedule.getAvailableSeats() + " chỗ!");
+        }
+
+        // Giảm số chỗ còn lại
+        schedule.setAvailableSeats(schedule.getAvailableSeats() - quantity);
+        tourScheduleRepository.save(schedule);
+
+        // Lưu thông tin tour vào booking
+        booking.setTour(schedule.getTour());
+        booking.setTourSchedule(schedule);
+        booking.setQuantity(quantity);
+        booking.setType(BookingType.TOUR);
+
+        // Tính tiền: Giá tour * Số người
+        Double tourPrice = schedule.getTour().getPrice();
+        if (tourPrice == null) {
+            tourPrice = schedule.getTour().getPriceAdult(); // Fallback sang giá người lớn
+        }
+        if (tourPrice == null) {
+            throw new RuntimeException("Tour chưa có giá, vui lòng liên hệ admin!");
+        }
+
+        return tourPrice * quantity;
     }
 
     // dùng voucher
