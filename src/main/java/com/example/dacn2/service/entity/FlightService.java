@@ -8,9 +8,9 @@ import com.example.dacn2.entity.flight.*;
 import com.example.dacn2.repository.flight.*;
 import com.example.dacn2.service.user_service.FileUploadService;
 
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Transactional(readOnly = true)
 public class FlightService {
 
     @Autowired

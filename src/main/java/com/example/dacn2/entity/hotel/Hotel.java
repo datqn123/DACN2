@@ -9,7 +9,9 @@ import java.util.List;
 import java.util.Set;
 
 @Entity
-@Table(name = "hotels")
+@Table(name = "hotels", indexes = {
+                @Index(name = "idx_hotel_location", columnList = "location_id")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -81,12 +83,12 @@ public class Hotel extends BaseEntity { // Kế thừa id, createdAt, updatedAt 
         @Column(name = "design_style")
         private DesignStyle designStyle;
         // 1. Thuộc về địa điểm nào? (Đà Nẵng, Hà Nội...)
-        @ManyToOne(fetch = FetchType.EAGER)
+        @ManyToOne(fetch = FetchType.LAZY)
         @JoinColumn(name = "location_id", nullable = false)
         private Location location;
 
         // 3. Có những tiện nghi gì? (Quan hệ Nhiều - Nhiều)
-        @ManyToMany(fetch = FetchType.EAGER)
+        @ManyToMany(fetch = FetchType.LAZY)
         @JoinTable(name = "hotels_amenities", joinColumns = @JoinColumn(name = "hotel_id"), inverseJoinColumns = @JoinColumn(name = "amenity_id"))
         private Set<Amenity> amenities;
 

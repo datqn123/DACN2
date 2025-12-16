@@ -14,7 +14,7 @@ import com.example.dacn2.repository.hotel.HotelRepository;
 import com.example.dacn2.repository.location.LocationInterfaceRepository; // Hoặc LocationRepository tùy tên bạn đặt
 import com.example.dacn2.service.user_service.FileUploadService;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(readOnly = true)
 public class HotelService {
 
     @Autowired

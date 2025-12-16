@@ -3,14 +3,11 @@ package com.example.dacn2.service.page;
 import com.example.dacn2.dto.response.home.FlightCardResponse;
 import com.example.dacn2.dto.response.home.HotelCardResponse;
 import com.example.dacn2.dto.response.home.LocationCardResponse;
-import com.example.dacn2.dto.response.home.LocationSearchResult;
 import com.example.dacn2.dto.response.home.TourCardResponse;
-import com.example.dacn2.entity.Location;
 import com.example.dacn2.entity.flight.Flight;
 import com.example.dacn2.entity.flight.FlightSeat;
 import com.example.dacn2.entity.hotel.Hotel;
 import com.example.dacn2.entity.hotel.Room;
-import com.example.dacn2.entity.tour.Tour;
 import com.example.dacn2.repository.flight.FlightRepository;
 import com.example.dacn2.repository.hotel.HotelRepository;
 import com.example.dacn2.repository.location.LocationInterfaceRepository;
@@ -20,11 +17,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(readOnly = true)
 public class HomeService {
 
     @Autowired
@@ -36,16 +35,11 @@ public class HomeService {
     @Autowired
     private TourRepository tourRepository;
 
+    /**
+     * Lấy địa điểm nổi bật - Sử dụng DTO Projection
+     */
     public List<LocationCardResponse> getFeaturedLocations() {
-        List<Location> locations = locationRepository.findFeaturedLocations();
-
-        return locations.stream().map(location -> LocationCardResponse.builder()
-                .id(location.getId())
-                .name(location.getName())
-                .slug(location.getSlug())
-                .thumbnail(location.getThumbnail())
-
-                .build()).collect(Collectors.toList());
+        return locationRepository.findFeaturedLocationCards();
     }
 
     public List<FlightCardResponse> getFeaturedFlights() {
@@ -67,40 +61,12 @@ public class HomeService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Lấy tour nổi bật - Sử dụng DTO Projection
+     */
     public List<TourCardResponse> getFeaturedTours() {
         Pageable top5Tours = PageRequest.of(0, 10);
-        List<Tour> tours = tourRepository.findFeaturedTours(top5Tours);
-
-        return tours.stream()
-                .map(this::convertToTourCard)
-                .collect(Collectors.toList());
-    }
-
-    private TourCardResponse convertToTourCard(Tour tour) {
-        TourCardResponse dto = new TourCardResponse();
-        dto.setId(tour.getId());
-        dto.setTitle(tour.getTitle());
-        dto.setSlug(tour.getSlug());
-        dto.setDuration(tour.getDuration());
-
-        // Nơi khởi hành và đích đến
-        dto.setStartLocationName(tour.getStartLocation().getName());
-        dto.setDestinationName(tour.getDestination().getName());
-
-        // Thumbnail - có thể dùng field thumbnail hoặc lấy từ images[0]
-        if (tour.getThumbnail() != null) {
-            dto.setThumbnail(tour.getThumbnail());
-        } else if (tour.getImages() != null && !tour.getImages().isEmpty()) {
-            dto.setThumbnail(tour.getImages().get(0).getImageUrl());
-        }
-
-        // Giá - Tour có 3 field: price, priceAdult, priceChild
-        // Ưu tiên dùng field 'price', nếu null thì dùng priceAdult
-        dto.setPrice(tour.getPrice() != null ? tour.getPrice() : tour.getPriceAdult());
-
-        dto.setTransportation(tour.getTransportation());
-
-        return dto;
+        return tourRepository.findFeaturedTourCards(top5Tours);
     }
 
     private HotelCardResponse convertToHotelCard(Hotel hotel) {

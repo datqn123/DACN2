@@ -9,8 +9,6 @@ import com.example.dacn2.repository.location.LocationInterfaceRepository;
 import com.example.dacn2.repository.tour.TourRepository;
 import com.example.dacn2.repository.tour.TourSpecification;
 import com.example.dacn2.service.user_service.FileUploadService;
-
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,9 +21,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional(readOnly = true)
 public class TourService {
 
     @Autowired
@@ -60,36 +63,32 @@ public class TourService {
     private static final int PAGE_SIZE = 20;
 
     public TourSearchResponse searchToursWithFilter(TourFilterRequest filter) {
-        List<TourCardResponse> allResults = tourRepository.findAll(TourSpecification.withFilters(filter)).stream()
+        // Tạo Pageable với sort theo giá nếu có yêu cầu
+        int page = filter.getPage() != null ? filter.getPage() : 0;
+        Sort sort = Sort.unsorted();
+        if ("ASC".equalsIgnoreCase(filter.getSortByPrice())) {
+            sort = Sort.by(Sort.Direction.ASC, "price");
+        } else if ("DESC".equalsIgnoreCase(filter.getSortByPrice())) {
+            sort = Sort.by(Sort.Direction.DESC, "price");
+        }
+        Pageable pageable = PageRequest.of(page, PAGE_SIZE, sort);
+
+        // Query database với pagination - CHỈ LẤY 20 BẢN GHI CẦN THIẾT
+        Page<Tour> tourPage = tourRepository.findAll(TourSpecification.withFilters(filter), pageable);
+
+        // Convert sang DTO
+        List<TourCardResponse> tourCards = tourPage.getContent().stream()
                 .map(this::mapToTourCard)
                 .toList();
 
-        allResults = sortByPrice(allResults, filter.getSortByPrice());
-
-        // Tính toán phân trang
-        int page = filter.getPage() != null ? filter.getPage() : 0;
-        int totalElements = allResults.size();
-        int totalPages = (int) Math.ceil((double) totalElements / PAGE_SIZE);
-
-        // Lấy kết quả cho trang hiện tại
-        int startIndex = page * PAGE_SIZE;
-        int endIndex = Math.min(startIndex + PAGE_SIZE, totalElements);
-
-        List<TourCardResponse> pagedResults;
-        if (startIndex >= totalElements) {
-            pagedResults = List.of(); // Trang không có dữ liệu
-        } else {
-            pagedResults = allResults.subList(startIndex, endIndex);
-        }
-
         return TourSearchResponse.builder()
-                .tours(pagedResults)
-                .currentPage(page)
-                .totalPages(totalPages)
-                .totalElements(totalElements)
-                .pageSize(PAGE_SIZE)
-                .hasNext(page < totalPages - 1)
-                .hasPrevious(page > 0)
+                .tours(tourCards)
+                .currentPage(tourPage.getNumber())
+                .totalPages(tourPage.getTotalPages())
+                .totalElements(tourPage.getTotalElements())
+                .pageSize(tourPage.getSize())
+                .hasNext(tourPage.hasNext())
+                .hasPrevious(tourPage.hasPrevious())
                 .build();
     }
 

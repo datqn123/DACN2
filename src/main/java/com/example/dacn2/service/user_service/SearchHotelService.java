@@ -15,14 +15,18 @@ import com.example.dacn2.repository.tour.TourRepository;
 import com.example.dacn2.service.entity.SearchHistoryService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
 
 @Service
+@Transactional(readOnly = true)
 public class SearchHotelService {
 
     private static final int PAGE_SIZE = 20;
@@ -37,7 +41,23 @@ public class SearchHotelService {
     private TourRepository tourRepository;
     @Autowired
     private SearchHistoryService searchHistoryService;
+    @Autowired
+    private com.example.dacn2.repository.auth.AccountRepositoryInterface accountRepository;
 
+    /**
+     * Helper: Lấy accountId từ UserDetails (dùng chung cho các Controller)
+     */
+    public Long getAccountIdFromUserDetails(org.springframework.security.core.userdetails.UserDetails userDetails) {
+        if (userDetails == null)
+            return null;
+        return accountRepository.findByEmail(userDetails.getUsername())
+                .map(account -> account.getId())
+                .orElse(null);
+    }
+
+    /**
+     * Lấy 10 địa điểm phổ biến nhất
+     */
     public List<LocationSearchResult> findTopDestinations() {
         Pageable top10 = PageRequest.of(0, 10);
         return locationRepository.findTopDestinations(top10);
@@ -65,40 +85,36 @@ public class SearchHotelService {
     /**
      * Tìm khách sạn với bộ lọc linh hoạt và phân trang
      * Mỗi trang hiển thị 20 kết quả
+     * SỬ DỤNG DTO PROJECTION + DATABASE-LEVEL PAGINATION (tối ưu hiệu suất tối đa)
      */
     public HotelSearchResponse searchHotelsWithFilter(HotelFilterRequest filter) {
-        // Lấy tất cả kết quả phù hợp filter
-        List<HotelCardResponse> allResults = hotelRepository.findAll(HotelSpecification.withFilters(filter)).stream()
-                .map(this::convertToHotelCard)
-                .toList();
-
-        // Sắp xếp theo giá nếu có yêu cầu
-        allResults = sortByPrice(allResults, filter.getSortByPrice());
-
-        // Tính toán phân trang
+        // Tạo Pageable với sort theo giá nếu có yêu cầu
         int page = filter.getPage() != null ? filter.getPage() : 0;
-        int totalElements = allResults.size();
-        int totalPages = (int) Math.ceil((double) totalElements / PAGE_SIZE);
-
-        // Lấy kết quả cho trang hiện tại
-        int startIndex = page * PAGE_SIZE;
-        int endIndex = Math.min(startIndex + PAGE_SIZE, totalElements);
-
-        List<HotelCardResponse> pagedResults;
-        if (startIndex >= totalElements) {
-            pagedResults = List.of(); // Trang không có dữ liệu
-        } else {
-            pagedResults = allResults.subList(startIndex, endIndex);
+        Sort sort = Sort.unsorted();
+        if ("ASC".equalsIgnoreCase(filter.getSortByPrice())) {
+            sort = Sort.by(Sort.Direction.ASC, "pricePerNightFrom");
+        } else if ("DESC".equalsIgnoreCase(filter.getSortByPrice())) {
+            sort = Sort.by(Sort.Direction.DESC, "pricePerNightFrom");
         }
+        Pageable pageable = PageRequest.of(page, PAGE_SIZE, sort);
+
+        // Query trực tiếp DTO Projection - CHỈ LẤY CÁC CỘT CẦN THIẾT
+        Page<HotelCardResponse> hotelPage = hotelRepository.findHotelCardsWithFilters(
+                filter.getLocationSlug(),
+                filter.getMinStarRating(),
+                filter.getHotelType(),
+                filter.getMinPrice(),
+                filter.getMaxPrice(),
+                pageable);
 
         return HotelSearchResponse.builder()
-                .hotels(pagedResults)
-                .currentPage(page)
-                .totalPages(totalPages)
-                .totalElements(totalElements)
-                .pageSize(PAGE_SIZE)
-                .hasNext(page < totalPages - 1)
-                .hasPrevious(page > 0)
+                .hotels(hotelPage.getContent())
+                .currentPage(hotelPage.getNumber())
+                .totalPages(hotelPage.getTotalPages())
+                .totalElements(hotelPage.getTotalElements())
+                .pageSize(hotelPage.getSize())
+                .hasNext(hotelPage.hasNext())
+                .hasPrevious(hotelPage.hasPrevious())
                 .build();
     }
 

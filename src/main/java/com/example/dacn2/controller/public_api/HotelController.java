@@ -31,16 +31,6 @@ public class HotelController {
         private SearchHotelService searchHotelService;
         @Autowired
         private HotelService hotelService;
-        @Autowired
-        private com.example.dacn2.repository.auth.AccountRepositoryInterface accountRepository;
-
-        @GetMapping("/top-10-locations")
-        public ApiResponse<List<LocationSearchResult>> findTopDestinations() {
-                return ApiResponse.<List<LocationSearchResult>>builder()
-                                .result(searchHotelService.findTopDestinations())
-                                .message("Get 10 location")
-                                .build();
-        }
 
         @GetMapping("/{id}")
         public ApiResponse<Hotel> getDetail(@PathVariable Long id) {
@@ -87,20 +77,12 @@ public class HotelController {
                                 .checkOutDate(checkOutDate)
                                 .build();
 
-                Long accountId = getAccountId(userDetails);
+                Long accountId = searchHotelService.getAccountIdFromUserDetails(userDetails);
                 HotelSearchResponse result = searchHotelService.searchHotelsAndSaveHistory(filter, accountId);
 
                 return ApiResponse.<HotelSearchResponse>builder()
                                 .result(result)
                                 .message("Tìm kiếm khách sạn thành công")
                                 .build();
-        }
-
-        private Long getAccountId(UserDetails userDetails) {
-                if (userDetails == null)
-                        return null;
-                return accountRepository.findByEmail(userDetails.getUsername())
-                                .map(account -> account.getId())
-                                .orElse(null);
         }
 }

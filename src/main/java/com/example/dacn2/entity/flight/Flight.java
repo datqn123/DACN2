@@ -8,7 +8,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "flights")
+@Table(name = "flights", indexes = {
+        @Index(name = "idx_flight_airline", columnList = "airline_id"),
+        @Index(name = "idx_flight_departure", columnList = "departureTime")
+})
 @Getter
 @Setter
 @NoArgsConstructor

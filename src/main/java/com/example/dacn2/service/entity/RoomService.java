@@ -5,17 +5,20 @@ import com.example.dacn2.entity.hotel.Hotel;
 import com.example.dacn2.entity.hotel.Room;
 import com.example.dacn2.repository.hotel.HotelRepository;
 import com.example.dacn2.repository.hotel.RoomRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@Transactional(readOnly = true)
 public class RoomService {
 
-    @Autowired private RoomRepository roomRepository;
-    @Autowired private HotelRepository hotelRepository;
+    @Autowired
+    private RoomRepository roomRepository;
+    @Autowired
+    private HotelRepository hotelRepository;
 
     // 1. Lấy tất cả phòng (Dành cho Admin)
     public List<Room> getAll() {

@@ -17,4 +17,14 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
 
     @Query(value = "SELECT * FROM tours ORDER BY RAND()", nativeQuery = true)
     List<Tour> findFeaturedTours(Pageable pageable);
+
+    /**
+     * DTO Projection - Trả về trực tiếp TourCardResponse
+     */
+    @Query("SELECT new com.example.dacn2.dto.response.home.TourCardResponse(" +
+            "t.id, t.title, t.slug, t.duration, " +
+            "t.startLocation.name, t.destination.name, " +
+            "t.thumbnail, t.price, t.transportation) " +
+            "FROM Tour t ORDER BY RAND()")
+    List<com.example.dacn2.dto.response.home.TourCardResponse> findFeaturedTourCards(Pageable pageable);
 }

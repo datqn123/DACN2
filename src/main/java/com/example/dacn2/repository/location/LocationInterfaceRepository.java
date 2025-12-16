@@ -25,6 +25,14 @@ public interface LocationInterfaceRepository extends JpaRepository<Location, Lon
         @Query("SELECT l FROM Location l WHERE l.type IN ('COUNTRY', 'PROVINCE') ORDER BY RAND() LIMIT 10")
         List<Location> findFeaturedLocations();
 
+        /**
+         * DTO Projection - Trả về trực tiếp LocationCardResponse
+         */
+        @Query("SELECT new com.example.dacn2.dto.response.home.LocationCardResponse(" +
+                        "l.id, l.name, l.slug, l.thumbnail) " +
+                        "FROM Location l WHERE l.type IN ('COUNTRY', 'PROVINCE') ORDER BY RAND() LIMIT 10")
+        List<com.example.dacn2.dto.response.home.LocationCardResponse> findFeaturedLocationCards();
+
         @Query("SELECT new com.example.dacn2.dto.response.home.LocationSearchResult(" +
                         "l.id, l.name, p.name, l.type, COUNT(h.id)) " + // Lấy p.name thay vì l.parent.name
                         "FROM Location l " +

@@ -6,7 +6,9 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "rooms")
+@Table(name = "rooms", indexes = {
+        @Index(name = "idx_room_hotel", columnList = "hotel_id")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -27,8 +29,9 @@ public class Room extends BaseEntity {
     private Boolean isAvailable = true; // Còn mở bán không?
 
     // Quan hệ: Nhiều phòng thuộc về 1 Khách sạn
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hotel_id", nullable = false)
-    @JsonIgnore // Ngắt vòng lặp JSON (Khi xem phòng không cần in lại toàn bộ thông tin khách sạn)
+    @JsonIgnore // Ngắt vòng lặp JSON (Khi xem phòng không cần in lại toàn bộ thông tin khách
+                // sạn)
     private Hotel hotel;
 }
