@@ -2,6 +2,7 @@ package com.example.dacn2.controller.public_api;
 
 import com.example.dacn2.dto.ApiResponse;
 import com.example.dacn2.dto.request.hotel.HotelFilterRequest;
+import com.example.dacn2.dto.response.home.HotelCardResponse;
 import com.example.dacn2.dto.response.home.HotelSearchResponse;
 import com.example.dacn2.dto.response.home.LocationSearchResult;
 import com.example.dacn2.entity.hotel.Hotel;
@@ -85,4 +86,5 @@ public class HotelController {
                                 .message("Tìm kiếm khách sạn thành công")
                                 .build();
         }
+
 }

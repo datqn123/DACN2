@@ -32,6 +32,10 @@ public class Account {
     @Column(length = 20, columnDefinition = "varchar(20) default 'ACTIVE'")
     private String status;
 
+    // Cold start flag - true nếu user chưa có đủ interaction history để personalize
+    @Column(name = "cold_start", nullable = false, columnDefinition = "boolean default true")
+    private Boolean coldStart = true;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -49,10 +53,6 @@ public class Account {
 
     // Quan hệ N-N với Role (Hệ thống mới)
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "accounts_roles",
-            joinColumns = @JoinColumn(name = "account_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
+    @JoinTable(name = "accounts_roles", joinColumns = @JoinColumn(name = "account_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles;
 }
