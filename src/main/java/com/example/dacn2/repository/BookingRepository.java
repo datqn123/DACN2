@@ -25,10 +25,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                         "AND b.checkOutDate > :checkInDate")
         Long countBookedRooms(Long roomId, LocalDateTime checkInDate, LocalDateTime checkOutDate);
 
-        /**
-         * Đếm tổng số phòng đã đặt của 1 hotel trong khoảng ngày
-         * Dùng để check real-time availability khi search
-         */
+        // đếm số phòng đang có sẵn real-time
         @Query("SELECT COALESCE(SUM(r.quantity), 0) - COALESCE(COUNT(b), 0) FROM Room r " +
                         "LEFT JOIN Booking b ON b.room.id = r.id " +
                         "AND b.status != 'CANCELLED' " +
@@ -56,4 +53,16 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                         "AND b.status = 'CONFIRMED' " +
                         "AND b.isPaid = true")
         boolean hasUserBookedHotel(Long userId, Long hotelId);
+
+        // Fetch booking với tất cả relationships cần thiết cho email
+        @Query("SELECT b FROM Booking b " +
+                        "LEFT JOIN FETCH b.room r " +
+                        "LEFT JOIN FETCH r.hotel h " +
+                        "LEFT JOIN FETCH b.flight f " +
+                        "LEFT JOIN FETCH b.flightSeat fs " +
+                        "LEFT JOIN FETCH b.tour t " +
+                        "LEFT JOIN FETCH b.tourSchedule ts " +
+                        "LEFT JOIN FETCH b.voucher v " +
+                        "WHERE b.id = :bookingId")
+        Optional<Booking> findByIdWithDetails(Long bookingId);
 }

@@ -86,4 +86,14 @@ public class BookingController {
                 .message("Lấy chi tiết đơn hàng thành công")
                 .build();
     }
+
+    // Hủy đơn hàng
+    @PostMapping("/{id}/cancel")
+    public ApiResponse<String> cancelBooking(@PathVariable Long id) {
+        bookingService.cancelBooking(id);
+        return ApiResponse.<String>builder()
+                .result("Đã hủy đơn hàng thành công")
+                .message("Hủy đơn hàng thành công")
+                .build();
+    }
 }

@@ -32,10 +32,13 @@ import com.example.dacn2.repository.flight.FlightSeatRepository;
 import com.example.dacn2.repository.hotel.RoomRepository;
 import com.example.dacn2.repository.tour.TourScheduleRepository;
 import com.example.dacn2.repository.voucher.VoucherRepository;
+import com.example.dacn2.service.EmailService;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Slf4j
 public class BookingService {
 
     @Autowired
@@ -52,6 +55,8 @@ public class BookingService {
     private FlightSeatRepository flightSeatRepository;
     @Autowired
     private TourScheduleRepository tourScheduleRepository;
+    @Autowired
+    private EmailService emailService;
 
     // Giá cố định cho dịch vụ bổ sung (có thể đưa vào config hoặc DB sau)
     private static final double TRAVEL_INSURANCE_PRICE = 99000; // VNĐ/khách
@@ -118,6 +123,18 @@ public class BookingService {
 
         // save passenger
         savePassengers(request.getPassengers(), savedBooking);
+
+        // Gửi email xác nhận đặt phòng (async)
+        // Phải fetch lại với JOIN FETCH để tránh lazy loading exception trong async
+        // thread
+        try {
+            Booking bookingWithDetails = bookingRepository.findByIdWithDetails(savedBooking.getId())
+                    .orElse(savedBooking);
+            emailService.sendBookingConfirmationEmail(bookingWithDetails);
+        } catch (Exception e) {
+            log.error("Failed to send booking confirmation email: {}", e.getMessage());
+        }
+
         return savedBooking;
     }
 
@@ -315,7 +332,56 @@ public class BookingService {
         booking.setIsPaid(true);
         bookingRepository.save(booking);
 
-        System.out.println("✅ Đã xác nhận thanh toán booking ID: " + bookingId);
+        // Gửi email thanh toán thành công (async)
+        // Phải fetch lại với JOIN FETCH để tránh lazy loading exception
+        try {
+            Booking bookingWithDetails = bookingRepository.findByIdWithDetails(bookingId)
+                    .orElse(booking);
+            emailService.sendPaymentSuccessEmail(bookingWithDetails);
+        } catch (Exception e) {
+            log.error("Failed to send payment success email: {}", e.getMessage());
+        }
+
+        log.info("✅ Đã xác nhận thanh toán booking ID: {}", bookingId);
+    }
+
+    /**
+     * Hủy đơn hàng
+     */
+    @Transactional
+    public void cancelBooking(Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng: " + bookingId));
+
+        if (booking.getStatus() == BookingStatus.CANCELLED) {
+            throw new RuntimeException("Đơn hàng này đã được hủy trước đó!");
+        }
+
+        booking.setStatus(BookingStatus.CANCELLED);
+        bookingRepository.save(booking);
+
+        // Hoàn lại số lượng nếu là vé máy bay hoặc tour
+        if (booking.getType() == BookingType.FLIGHT && booking.getFlightSeat() != null) {
+            FlightSeat seat = booking.getFlightSeat();
+            seat.setAvailableQuantity(seat.getAvailableQuantity() + booking.getQuantity());
+            flightSeatRepository.save(seat);
+        } else if (booking.getType() == BookingType.TOUR && booking.getTourSchedule() != null) {
+            TourSchedule schedule = booking.getTourSchedule();
+            schedule.setAvailableSeats(schedule.getAvailableSeats() + booking.getQuantity());
+            tourScheduleRepository.save(schedule);
+        }
+
+        // Gửi email thông báo hủy (async)
+        // Phải fetch lại với JOIN FETCH để tránh lazy loading exception
+        try {
+            Booking bookingWithDetails = bookingRepository.findByIdWithDetails(bookingId)
+                    .orElse(booking);
+            emailService.sendBookingCancellationEmail(bookingWithDetails);
+        } catch (Exception e) {
+            log.error("Failed to send cancellation email: {}", e.getMessage());
+        }
+
+        log.info("❌ Đã hủy đơn hàng booking ID: {}", bookingId);
     }
 
     /**

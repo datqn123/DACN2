@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title}">TripGo Email</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            color: #ffffff;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        .header p {
+            color: rgba(255,255,255,0.9);
+            font-size: 14px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            margin-top: 15px;
+        }
+        .status-confirmation {
+            background: #4CAF50;
+            color: white;
+        }
+        .status-payment {
+            background: #2196F3;
+            color: white;
+        }
+        .status-cancellation {
+            background: #f44336;
+            color: white;
+        }
+        .content {
+            padding: 30px 25px;
+        }
+        .greeting {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .message {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+        .booking-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .booking-code {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            text-align: center;
+            padding: 15px;
+            background: #eef0ff;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            color: #888;
+            font-size: 14px;
+        }
+        .info-value {
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+            text-align: right;
+        }
+        .price-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            color: rgba(255,255,255,0.9);
+            padding: 8px 0;
+            font-size: 14px;
+        }
+        .price-total {
+            display: flex;
+            justify-content: space-between;
+            color: #ffffff;
+            padding: 15px 0 0;
+            margin-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.3);
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .cta-button {
+            display: block;
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-weight: bold;
+            margin: 25px auto;
+            max-width: 250px;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 25px;
+            text-align: center;
+        }
+        .footer p {
+            color: #888;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .social-links {
+            margin-top: 15px;
+        }
+        .social-links a {
+            display: inline-block;
+            margin: 0 8px;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🌍 TripGo</h1>
+            <p>Đặt phòng khách sạn & Tour du lịch</p>
+            
+            <!-- Status Badge -->
+            <span th:if="${emailType == 'CONFIRMATION'}" class="status-badge status-confirmation">
+                ✓ Đã xác nhận đặt phòng
+            </span>
+            <span th:if="${emailType == 'PAYMENT_SUCCESS'}" class="status-badge status-payment">
+                ✓ Thanh toán thành công
+            </span>
+            <span th:if="${emailType == 'CANCELLATION'}" class="status-badge status-cancellation">
+                ✕ Đã hủy đơn hàng
+            </span>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <p class="greeting">Xin chào <strong th:text="${contactName}">Khách hàng</strong>,</p>
+            <p class="message" th:text="${message}">Cảm ơn bạn đã sử dụng dịch vụ của TripGo!</p>
+
+            <!-- Booking Card -->
+            <div class="booking-card">
+                <div class="booking-code" th:text="${bookingCode}">TGO-123456</div>
+                
+                <div class="info-row">
+                    <span class="info-label">Dịch vụ</span>
+                    <span class="info-value" th:text="${serviceName}">Khách sạn ABC</span>
+                </div>
+                <div class="info-row" th:if="${serviceDetail != null and serviceDetail != ''}">
+                    <span class="info-label">Chi tiết</span>
+                    <span class="info-value" th:text="${serviceDetail}">Phòng Deluxe</span>
+                </div>
+                <div class="info-row" th:if="${checkInDate != null and checkInDate != ''}">
+                    <span class="info-label">Nhận phòng</span>
+                    <span class="info-value" th:text="${checkInDate}">01/01/2025</span>
+                </div>
+                <div class="info-row" th:if="${checkOutDate != null and checkOutDate != ''}">
+                    <span class="info-label">Trả phòng</span>
+                    <span class="info-value" th:text="${checkOutDate}">02/01/2025</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Số lượng</span>
+                    <span class="info-value" th:text="${quantity}">1 phòng</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Email</span>
+                    <span class="info-value" th:text="${contactEmail}">email@example.com</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Điện thoại</span>
+                    <span class="info-value" th:text="${contactPhone}">0123456789</span>
+                </div>
+            </div>
+
+            <!-- Price Section -->
+            <div class="price-section">
+                <div class="price-row">
+                    <span>Tạm tính</span>
+                    <span th:text="${totalPrice}">1,000,000 ₫</span>
+                </div>
+                <div class="price-row" th:if="${voucherCode != null}">
+                    <span>Giảm giá (<span th:text="${voucherCode}">CODE</span>)</span>
+                    <span>-<span th:text="${discountAmount}">100,000 ₫</span></span>
+                </div>
+                <div class="price-total">
+                    <span>Tổng cộng</span>
+                    <span th:text="${finalPrice}">900,000 ₫</span>
+                </div>
+            </div>
+
+            <!-- CTA Button -->
+            <a th:href="${bookingDetailUrl}" class="cta-button">
+                Xem chi tiết đơn hàng
+            </a>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>
+                Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ<br>
+                <a href="mailto:support@tripgo.com">support@tripgo.com</a> | Hotline: 1900-xxxx
+            </p>
+            <div class="social-links">
+                <a href="#">Facebook</a> |
+                <a href="#">Instagram</a> |
+                <a href="#">Twitter</a>
+            </div>
+            <p style="margin-top: 15px; font-size: 11px; color: #aaa;">
+                © 2024 TripGo. All rights reserved.<br>
+                Email này được gửi tự động, vui lòng không reply.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
