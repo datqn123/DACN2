@@ -2,6 +2,7 @@ package com.example.dacn2.entity.hotel;
 
 import com.example.dacn2.entity.BaseEntity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -9,6 +10,7 @@ import lombok.*;
 @Table(name = "rooms", indexes = {
         @Index(name = "idx_room_hotel", columnList = "hotel_id")
 })
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 @Getter
 @Setter
 @NoArgsConstructor

@@ -4,6 +4,7 @@ import com.example.dacn2.entity.enums.LocationType;
 import com.example.dacn2.entity.hotel.Hotel;
 import com.example.dacn2.entity.tour.Tour;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -11,11 +12,12 @@ import java.util.List;
 
 @Entity
 @Table(name = "locations")
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Location extends BaseEntity{
+public class Location extends BaseEntity {
     @Column(nullable = false, unique = true)
     private String name;
 
@@ -29,7 +31,6 @@ public class Location extends BaseEntity{
 
     @Enumerated(EnumType.STRING)
     private LocationType type;
-
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
