@@ -123,6 +123,11 @@ public class HotelService {
         }
         hotelRepository.deleteById(id);
     }
+
+    // lấy hotel theo location
+    public List<HotelCardResponse> getHotelByLocation(Long locationId) {
+        return hotelRepository.findByLocationId(locationId);
+    }
     // HELPER
 
     private HotelCardResponse convertToCard(Hotel hotel) {

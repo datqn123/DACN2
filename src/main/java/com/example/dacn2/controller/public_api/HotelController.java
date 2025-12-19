@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.lang.reflect.AccessFlag.Location;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -87,4 +88,10 @@ public class HotelController {
                                 .build();
         }
 
+        @GetMapping("/by-location/{locationId}")
+        public ApiResponse<List<HotelCardResponse>> getHotelByLocation(@PathVariable Long locationId) {
+                return ApiResponse.<List<HotelCardResponse>>builder()
+                                .result(hotelService.getHotelByLocation(locationId))
+                                .build();
+        }
 }

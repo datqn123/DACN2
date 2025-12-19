@@ -66,4 +66,7 @@ public interface LocationInterfaceRepository extends JpaRepository<Location, Lon
         // Dropdown cho search flight
         @Query("SELECT new com.example.dacn2.dto.response.DropdownLocationResponse(l.id, l.name) FROM Location l")
         List<DropdownLocationResponse> getDropdownLocations();
+
+        @Query("SELECT l FROM Location l where l.parent.slug = 'viet-nam'")
+        List<Location> getVnLocation();
 }

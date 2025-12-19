@@ -88,6 +88,11 @@ public class LocationService {
         return locationRepository.getDropdownLocations();
     }
 
+    // lấy các nội địa tỏng vn
+    public List<Location> getVnLocation() {
+        return locationRepository.getVnLocation();
+    }
+
     // Hàm phụ trợ: Map dữ liệu từ DTO sang Entity
     private void mapRequestToEntity(LocationRequest request, Location location) {
         location.setName(request.getName());

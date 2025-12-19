@@ -55,4 +55,11 @@ public class LocationController {
                 .result(locationService.getDropdownLocations())
                 .build();
     }
+
+    @GetMapping("vn-location")
+    public ApiResponse<List<Location>> getVnLocation() {
+        return ApiResponse.<List<Location>>builder()
+                .result(locationService.getVnLocation())
+                .build();
+    }
 }
