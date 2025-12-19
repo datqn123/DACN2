@@ -33,6 +33,8 @@ import com.example.dacn2.repository.hotel.RoomRepository;
 import com.example.dacn2.repository.tour.TourScheduleRepository;
 import com.example.dacn2.repository.voucher.VoucherRepository;
 import com.example.dacn2.service.EmailService;
+import com.example.dacn2.service.entity.NotificationService;
+import com.example.dacn2.entity.notification.NotificationType;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,6 +59,8 @@ public class BookingService {
     private TourScheduleRepository tourScheduleRepository;
     @Autowired
     private EmailService emailService;
+    @Autowired
+    private NotificationService notificationService;
 
     // Giá cố định cho dịch vụ bổ sung (có thể đưa vào config hoặc DB sau)
     private static final double TRAVEL_INSURANCE_PRICE = 99000; // VNĐ/khách
@@ -133,6 +137,18 @@ public class BookingService {
             emailService.sendBookingConfirmationEmail(bookingWithDetails);
         } catch (Exception e) {
             log.error("Failed to send booking confirmation email: {}", e.getMessage());
+        }
+
+        // 🔔 Gửi notification realtime
+        try {
+            notificationService.sendNotification(
+                    user.getId(),
+                    "Đặt phòng thành công!",
+                    "Mã đơn hàng: " + savedBooking.getBookingCode() + ". Vui lòng thanh toán để hoàn tất.",
+                    NotificationType.BOOKING_CREATED,
+                    "/my-bookings");
+        } catch (Exception e) {
+            log.error("Failed to send booking notification: {}", e.getMessage());
         }
 
         return savedBooking;
@@ -342,6 +358,18 @@ public class BookingService {
             log.error("Failed to send payment success email: {}", e.getMessage());
         }
 
+        // 🔔 Gửi notification realtime
+        try {
+            notificationService.sendNotification(
+                    booking.getUser().getId(),
+                    "Thanh toán thành công!",
+                    "Đơn hàng " + booking.getBookingCode() + " đã được xác nhận. Cảm ơn bạn đã sử dụng dịch vụ!",
+                    NotificationType.PAYMENT_SUCCESS,
+                    "/my-bookings");
+        } catch (Exception e) {
+            log.error("Failed to send payment notification: {}", e.getMessage());
+        }
+
         log.info("✅ Đã xác nhận thanh toán booking ID: {}", bookingId);
     }
 
@@ -379,6 +407,18 @@ public class BookingService {
             emailService.sendBookingCancellationEmail(bookingWithDetails);
         } catch (Exception e) {
             log.error("Failed to send cancellation email: {}", e.getMessage());
+        }
+
+        // 🔔 Gửi notification realtime
+        try {
+            notificationService.sendNotification(
+                    booking.getUser().getId(),
+                    "Đơn hàng đã bị hủy",
+                    "Đơn hàng " + booking.getBookingCode() + " đã được hủy thành công.",
+                    NotificationType.BOOKING_CANCELLED,
+                    "/my-bookings");
+        } catch (Exception e) {
+            log.error("Failed to send cancellation notification: {}", e.getMessage());
         }
 
         log.info("❌ Đã hủy đơn hàng booking ID: {}", bookingId);
