@@ -16,8 +16,10 @@ public class CorsConfig {
         // 1. Cho phép các domain cụ thể (không dùng "*" vì xung đột với credentials)
         corsConfiguration.addAllowedOriginPattern("http://localhost:3000");
         corsConfiguration.addAllowedOriginPattern("http://localhost:5173");
+        corsConfiguration.addAllowedOriginPattern("http://localhost:8080");
         corsConfiguration.addAllowedOriginPattern("https://*.vercel.app");
         corsConfiguration.addAllowedOriginPattern("https://*.netlify.app");
+        corsConfiguration.addAllowedOriginPattern("https://*.onrender.com");
 
         // 2. Cho phép tất cả các method (GET, POST, PUT, DELETE, OPTIONS...)
         corsConfiguration.addAllowedMethod("*");
