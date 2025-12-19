@@ -11,4 +11,5 @@ public class DropdownLocationResponse {
     private Long id;
     private String name;
     private Long count;
+    private String thumbnail;
 }
