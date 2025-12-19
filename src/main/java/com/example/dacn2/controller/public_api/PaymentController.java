@@ -40,11 +40,11 @@ public class PaymentController {
     @Autowired
     private BookingService bookingService;
 
-    @Value("${app.frontend.url}")
+    @Value("${app.frontend.url:https://tripgo-frontend.vercel.app}")
     private String frontendBaseUrl;
 
     // URL của backend để PayOS callback về
-    @Value("${app.backend.url:https://tripgo-api.onrender.com/}")
+    @Value("${app.backend.url:https://tripgo-api.onrender.com}")
     private String backendBaseUrl;
 
     /**

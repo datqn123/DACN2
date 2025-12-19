@@ -74,36 +74,46 @@ public class ViewHistoryService {
     // Đánh dấu actions
     @Transactional
     public void markClickedBooking(Long accountId, Long hotelId) {
-        findLatestView(accountId, hotelId).ifPresent(vh -> {
+        log.info("markClickedBooking called: accountId={}, hotelId={}", accountId, hotelId);
+        ViewHistory vh = getOrCreateViewHistory(accountId, hotelId, ViewSource.DIRECT);
+        if (vh != null) {
             vh.setClickedBooking(true);
             viewHistoryRepository.save(vh);
-        });
+            log.info("Marked booking: viewHistoryId={}", vh.getId());
+        }
     }
 
     @Transactional
     public void markClickedFavorite(Long accountId, Long hotelId) {
-        findLatestView(accountId, hotelId).ifPresent(vh -> {
+        log.info("markClickedFavorite called: accountId={}, hotelId={}", accountId, hotelId);
+        ViewHistory vh = getOrCreateViewHistory(accountId, hotelId, ViewSource.FAVORITE);
+        if (vh != null) {
             vh.setClickedFavorite(true);
             viewHistoryRepository.save(vh);
-        });
+            log.info("Marked favorite: viewHistoryId={}", vh.getId());
+        }
     }
 
     @Transactional
     public void markCompletedPayment(Long accountId, Long hotelId) {
-        findLatestView(accountId, hotelId).ifPresent(vh -> {
+        log.info("markCompletedPayment called: accountId={}, hotelId={}", accountId, hotelId);
+        ViewHistory vh = getOrCreateViewHistory(accountId, hotelId, ViewSource.DIRECT);
+        if (vh != null) {
             vh.setCompletedPayment(true);
             viewHistoryRepository.save(vh);
-            log.info("Marked payment completed: accountId={}, hotelId={}", accountId, hotelId);
-        });
+            log.info("Marked payment completed: viewHistoryId={}", vh.getId());
+        }
     }
 
     @Transactional
     public void markSubmittedReview(Long accountId, Long hotelId) {
-        findLatestView(accountId, hotelId).ifPresent(vh -> {
+        log.info("markSubmittedReview called: accountId={}, hotelId={}", accountId, hotelId);
+        ViewHistory vh = getOrCreateViewHistory(accountId, hotelId, ViewSource.DIRECT);
+        if (vh != null) {
             vh.setSubmittedReview(true);
             viewHistoryRepository.save(vh);
-            log.info("Marked review submitted: accountId={}, hotelId={}", accountId, hotelId);
-        });
+            log.info("Marked review submitted: viewHistoryId={}", vh.getId());
+        }
     }
 
     // Lấy lịch sử xem của user
@@ -114,7 +124,44 @@ public class ViewHistoryService {
         return viewHistoryRepository.findByAccountOrderByViewedAtDesc(account, PageRequest.of(page, size));
     }
 
-    // Helper methods
+    // ==================== HELPER METHODS ====================
+
+    /**
+     * Lấy ViewHistory mới nhất hoặc tạo mới nếu chưa có
+     */
+    private ViewHistory getOrCreateViewHistory(Long accountId, Long hotelId, ViewSource source) {
+        var viewOpt = findLatestView(accountId, hotelId);
+        if (viewOpt.isPresent()) {
+            return viewOpt.get();
+        }
+
+        // Tạo ViewHistory mới
+        Account account = accountRepository.findById(accountId).orElse(null);
+        Hotel hotel = hotelRepository.findById(hotelId).orElse(null);
+        if (account == null || hotel == null) {
+            log.warn("Cannot create ViewHistory - account or hotel not found: accountId={}, hotelId={}", accountId,
+                    hotelId);
+            return null;
+        }
+
+        ViewHistory newVh = ViewHistory.builder()
+                .account(account)
+                .hotel(hotel)
+                .viewedAt(LocalDateTime.now())
+                .viewSource(source)
+                // Snapshot hotel info
+                .location(hotel.getLocation())
+                .hotelStarRating(hotel.getStarRating())
+                .hotelType(hotel.getType())
+                .hotelPriceRange(hotel.getPriceRange())
+                .hotelPricePerNight(hotel.getPricePerNightFrom())
+                .hotelAverageRating(hotel.getAverageRating())
+                .build();
+        ViewHistory saved = viewHistoryRepository.save(newVh);
+        log.info("Created new ViewHistory: viewHistoryId={}, source={}", saved.getId(), source);
+        return saved;
+    }
+
     private java.util.Optional<ViewHistory> findLatestView(Long accountId, Long hotelId) {
         Account account = accountRepository.findById(accountId).orElse(null);
         Hotel hotel = hotelRepository.findById(hotelId).orElse(null);
