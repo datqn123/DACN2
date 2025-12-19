@@ -53,9 +53,11 @@ public class PaymentController {
         long bookingId = booking.getId(); // Dùng ID làm orderCode cho PayOS
 
         // 2. Lấy số tiền từ booking (finalPrice đã tính discount)
-        long amount = booking.getFinalPrice() != null
-                ? booking.getFinalPrice().longValue()
-                : booking.getTotalPrice().longValue();
+        // TODO: Bỏ hardcode sau khi test xong
+        long amount = 2000; // Test với 2000 đồng
+        // long amount = booking.getFinalPrice() != null
+        // ? booking.getFinalPrice().longValue()
+        // : booking.getTotalPrice().longValue();
 
         try {
             // 3. Tạo request gửi sang PayOS
