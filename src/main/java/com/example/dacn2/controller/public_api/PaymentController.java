@@ -149,22 +149,12 @@ public class PaymentController {
 
     /**
      * Webhook nhận callback từ PayOS khi thanh toán thành công (Server-to-Server)
-     * PayOS sẽ gửi test webhook khi cấu hình - cần trả về 200 OK
      */
     @PostMapping("/payos-webhook")
     public ResponseEntity<String> handlePayOSWebhook(@RequestBody Webhook webhookBody) {
         try {
-            System.out.println("📥 Webhook received: " + webhookBody);
-            
             // Xác thực webhook
             WebhookData data = payOS.webhooks().verify(webhookBody);
-            
-            // Nếu là test webhook (orderCode = 0 hoặc null), chỉ trả về OK
-            if (data == null || data.getOrderCode() == 0) {
-                System.out.println("✅ Test webhook verified successfully");
-                return ResponseEntity.ok("Test webhook received");
-            }
-            
             long bookingId = data.getOrderCode();
 
             // Cập nhật booking status = CONFIRMED, isPaid = true
@@ -174,9 +164,8 @@ public class PaymentController {
 
             return ResponseEntity.ok("Webhook received");
         } catch (Exception e) {
-            // Vẫn trả về 200 để PayOS không retry liên tục
-            System.err.println("⚠️ Webhook warning: " + e.getMessage());
-            return ResponseEntity.ok("Webhook received with warning: " + e.getMessage());
+            System.err.println("❌ Webhook error: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Invalid Webhook: " + e.getMessage());
         }
     }
 
