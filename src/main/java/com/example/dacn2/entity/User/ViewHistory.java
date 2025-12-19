@@ -74,6 +74,14 @@ public class ViewHistory extends BaseEntity {
     @Builder.Default
     private Boolean clickedFavorite = false; // Có thêm vào yêu thích không?
 
+    @Column(name = "completed_payment")
+    @Builder.Default
+    private Boolean completedPayment = false; // Đã thanh toán thành công?
+
+    @Column(name = "submitted_review")
+    @Builder.Default
+    private Boolean submittedReview = false; // Đã gửi đánh giá?
+
     // ==================== CONTEXT - Nguồn traffic ====================
 
     /**

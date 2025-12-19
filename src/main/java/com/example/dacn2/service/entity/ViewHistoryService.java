@@ -88,6 +88,24 @@ public class ViewHistoryService {
         });
     }
 
+    @Transactional
+    public void markCompletedPayment(Long accountId, Long hotelId) {
+        findLatestView(accountId, hotelId).ifPresent(vh -> {
+            vh.setCompletedPayment(true);
+            viewHistoryRepository.save(vh);
+            log.info("Marked payment completed: accountId={}, hotelId={}", accountId, hotelId);
+        });
+    }
+
+    @Transactional
+    public void markSubmittedReview(Long accountId, Long hotelId) {
+        findLatestView(accountId, hotelId).ifPresent(vh -> {
+            vh.setSubmittedReview(true);
+            viewHistoryRepository.save(vh);
+            log.info("Marked review submitted: accountId={}, hotelId={}", accountId, hotelId);
+        });
+    }
+
     // Lấy lịch sử xem của user
     public Page<ViewHistory> getRecentViews(Long accountId, int page, int size) {
         Account account = accountRepository.findById(accountId).orElse(null);

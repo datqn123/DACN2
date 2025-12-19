@@ -64,6 +64,24 @@ public class ViewHistoryController {
         return ApiResponse.<Void>builder().message("OK").build();
     }
 
+    @PostMapping("/action/payment")
+    public ApiResponse<Void> markPayment(@RequestParam Long hotelId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long accountId = viewHistoryService.getAccountIdFromUserDetails(userDetails);
+        if (accountId != null)
+            viewHistoryService.markCompletedPayment(accountId, hotelId);
+        return ApiResponse.<Void>builder().message("OK").build();
+    }
+
+    @PostMapping("/action/review")
+    public ApiResponse<Void> markReview(@RequestParam Long hotelId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long accountId = viewHistoryService.getAccountIdFromUserDetails(userDetails);
+        if (accountId != null)
+            viewHistoryService.markSubmittedReview(accountId, hotelId);
+        return ApiResponse.<Void>builder().message("OK").build();
+    }
+
     // Lấy lịch sử xem
     @GetMapping("/recent")
     public ApiResponse<Page<ViewHistoryResponse>> getRecentViews(

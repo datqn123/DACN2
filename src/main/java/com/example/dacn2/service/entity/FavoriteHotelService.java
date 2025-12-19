@@ -24,6 +24,7 @@ public class FavoriteHotelService {
     private final FavoriteHotelRepository favoriteHotelRepository;
     private final HotelRepository hotelRepository;
     private final AccountRepositoryInterface accountRepository;
+    private final ViewHistoryService viewHistoryService;
 
     /**
      * Toggle yêu thích - Safe version
@@ -56,6 +57,10 @@ public class FavoriteHotelService {
                     .hotel(hotel)
                     .build();
             favoriteHotelRepository.save(favorite);
+
+            // Ghi nhận vào ViewHistory nếu có lịch sử xem
+            viewHistoryService.markClickedFavorite(accountId, hotelId);
+
             return true; // Đã thêm
         }
     }
