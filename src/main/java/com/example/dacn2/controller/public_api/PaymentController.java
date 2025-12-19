@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,6 +25,9 @@ import vn.payos.model.v2.paymentRequests.CreatePaymentLinkRequest;
 import vn.payos.model.v2.paymentRequests.CreatePaymentLinkResponse;
 import vn.payos.model.webhooks.Webhook;
 import vn.payos.model.webhooks.WebhookData;
+
+import com.example.dacn2.dto.response.BookingResponse;
+import com.example.dacn2.entity.booking.BookingStatus;
 
 @RestController
 @RequestMapping("/api/payment")
@@ -162,6 +166,28 @@ public class PaymentController {
         } catch (Exception e) {
             System.err.println("❌ Webhook error: " + e.getMessage());
             return ResponseEntity.badRequest().body("Invalid Webhook: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/check-status/{orderCode}")
+    public ApiResponse<String> checkPaymentStatus(@PathVariable Long orderCode) {
+        try {
+            // Check status từ Database (đã được Webhook cập nhật)
+            BookingResponse booking = bookingService.getBookingById(orderCode);
+
+            String status = "PENDING";
+            if (Boolean.TRUE.equals(booking.getIsPaid()) || booking.getStatus() == BookingStatus.CONFIRMED) {
+                status = "PAID";
+            } else if (booking.getStatus() == BookingStatus.CANCELLED) {
+                status = "CANCELLED";
+            }
+
+            return ApiResponse.<String>builder()
+                    .result(status)
+                    .message("Check status thành công")
+                    .build();
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi check status: " + e.getMessage());
         }
     }
 }
