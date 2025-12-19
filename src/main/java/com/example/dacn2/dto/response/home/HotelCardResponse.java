@@ -17,6 +17,8 @@ public class HotelCardResponse {
 
     private Integer starRating; // Số sao (1-5)
 
+    private Integer totalReviews;
+
     private String locationName; // Tên địa điểm (VD: "Đà Nẵng")
 
     private String thumbnail; // Ảnh đại diện (lấy từ images[0])
@@ -32,11 +34,12 @@ public class HotelCardResponse {
      * Chỉ lấy các cột cần thiết từ database
      */
     public HotelCardResponse(Long id, String name, String address, Integer starRating,
-            String locationName, String thumbnail, Double minPrice, HotelType hotelType) {
+            Integer totalReviews, String locationName, String thumbnail, Double minPrice, HotelType hotelType) {
         this.id = id;
         this.name = name;
         this.address = address;
         this.starRating = starRating;
+        this.totalReviews = totalReviews;
         this.locationName = locationName;
         this.thumbnail = thumbnail;
         this.minPrice = minPrice;

@@ -10,4 +10,5 @@ import lombok.*;
 public class DropdownLocationResponse {
     private Long id;
     private String name;
+    private Long count;
 }

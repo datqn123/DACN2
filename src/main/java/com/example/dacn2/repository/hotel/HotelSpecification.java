@@ -26,10 +26,10 @@ public class HotelSpecification {
             List<Predicate> predicates = new ArrayList<>();
 
             // Filter theo location slug
-            if (filter.getLocationSlug() != null && !filter.getLocationSlug().isEmpty()) {
+            if (filter.getId() != null) {
                 predicates.add(criteriaBuilder.equal(
-                        criteriaBuilder.lower(root.get("location").get("slug")),
-                        filter.getLocationSlug().toLowerCase()));
+                        root.get("id"),
+                        filter.getId()));
             }
 
             // Filter theo khoảng giá phòng (minPrice)

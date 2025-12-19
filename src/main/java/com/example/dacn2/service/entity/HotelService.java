@@ -8,7 +8,6 @@ import com.example.dacn2.entity.Location;
 import com.example.dacn2.entity.hotel.Amenity;
 import com.example.dacn2.entity.hotel.Hotel;
 import com.example.dacn2.entity.hotel.HotelView;
-import com.example.dacn2.entity.hotel.Room;
 import com.example.dacn2.repository.hotel.AmenityRepository;
 import com.example.dacn2.repository.hotel.HotelRepository;
 import com.example.dacn2.repository.location.LocationInterfaceRepository; // Hoặc LocationRepository tùy tên bạn đặt
@@ -136,6 +135,7 @@ public class HotelService {
         dto.setName(hotel.getName());
         dto.setAddress(hotel.getAddress());
         dto.setStarRating(hotel.getStarRating());
+        dto.setTotalReviews(hotel.getTotalReviews());
 
         if (hotel.getLocation() != null) {
             dto.setLocationName(hotel.getLocation().getName());
@@ -147,16 +147,7 @@ public class HotelService {
         }
 
         // Giá phòng thấp nhất
-        if (hotel.getPricePerNightFrom() != null) {
-            dto.setMinPrice(hotel.getPricePerNightFrom());
-        } else if (hotel.getRooms() != null && !hotel.getRooms().isEmpty()) {
-            double minPrice = hotel.getRooms().stream()
-                    .filter(room -> room.getPrice() != null && room.getIsAvailable())
-                    .mapToDouble(Room::getPrice)
-                    .min()
-                    .orElse(0.0);
-            dto.setMinPrice(minPrice);
-        }
+        dto.setMinPrice(hotel.getPricePerNightFrom());
 
         if (hotel.getType() != null) {
             dto.setHotelType(hotel.getType().toString());

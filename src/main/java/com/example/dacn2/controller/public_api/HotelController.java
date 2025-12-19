@@ -53,7 +53,7 @@ public class HotelController {
 
         @GetMapping("/search")
         public ApiResponse<HotelSearchResponse> searchHotels(
-                        @RequestParam(required = false) String slug,
+                        @RequestParam(required = false) Long id,
                         @RequestParam(required = false) Double minPrice,
                         @RequestParam(required = false) Double maxPrice,
                         @RequestParam(required = false) Integer minStarRating,
@@ -66,7 +66,7 @@ public class HotelController {
                         @AuthenticationPrincipal UserDetails userDetails) {
 
                 HotelFilterRequest filter = HotelFilterRequest.builder()
-                                .locationSlug(slug)
+                                .id(id)
                                 .minPrice(minPrice)
                                 .maxPrice(maxPrice)
                                 .minStarRating(minStarRating)
@@ -93,4 +93,5 @@ public class HotelController {
                                 .result(hotelService.getHotelByLocation(locationId))
                                 .build();
         }
+
 }

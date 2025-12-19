@@ -6,10 +6,10 @@ import com.example.dacn2.dto.response.home.HotelCardResponse;
 import com.example.dacn2.dto.response.home.HotelSearchResponse;
 import com.example.dacn2.dto.response.home.LocationSearchResult;
 import com.example.dacn2.entity.hotel.Hotel;
-import com.example.dacn2.entity.hotel.Room;
+
 import com.example.dacn2.repository.flight.FlightRepository;
 import com.example.dacn2.repository.hotel.HotelRepository;
-import com.example.dacn2.repository.hotel.HotelSpecification;
+
 import com.example.dacn2.repository.location.LocationInterfaceRepository;
 import com.example.dacn2.repository.tour.TourRepository;
 import com.example.dacn2.service.entity.SearchHistoryService;
@@ -100,7 +100,7 @@ public class SearchHotelService {
 
         // Query trực tiếp DTO Projection - CHỈ LẤY CÁC CỘT CẦN THIẾT
         Page<HotelCardResponse> hotelPage = hotelRepository.findHotelCardsWithFilters(
-                filter.getLocationSlug(),
+                filter.getId(), // locationId - lấy hotels thuộc location này hoặc location con
                 filter.getMinStarRating(),
                 filter.getHotelType(),
                 filter.getMinPrice(),
@@ -126,9 +126,9 @@ public class SearchHotelService {
         HotelSearchResponse result = searchHotelsWithFilter(filter);
 
         // Lưu lịch sử nếu có accountId và có keyword
-        if (accountId != null && filter.getLocationSlug() != null && !filter.getLocationSlug().isBlank()) {
+        if (accountId != null && filter.getId() != null) {
             SearchHistoryRequest historyRequest = SearchHistoryRequest.builder()
-                    .keyword(filter.getLocationSlug())
+                    .keyword(String.valueOf(filter.getId()))
                     .searchType("HOTEL")
                     .resultCount((int) result.getTotalElements())
                     .minPrice(filter.getMinPrice())
@@ -175,30 +175,19 @@ public class SearchHotelService {
 
     /**
      * Chuyển đổi Hotel entity sang HotelCardResponse DTO
-     * minPrice: ưu tiên pricePerNightFrom, fallback sang tính từ rooms
      */
     private HotelCardResponse convertToHotelCard(Hotel hotel) {
-        Double minPrice = hotel.getPricePerNightFrom();
-
-        // Nếu pricePerNightFrom null -> tính từ rooms
-        if (minPrice == null && hotel.getRooms() != null && !hotel.getRooms().isEmpty()) {
-            minPrice = hotel.getRooms().stream()
-                    .filter(room -> room.getPrice() != null && room.getIsAvailable())
-                    .mapToDouble(Room::getPrice)
-                    .min()
-                    .orElse(0.0);
-        }
-
         return HotelCardResponse.builder()
                 .id(hotel.getId())
                 .name(hotel.getName())
                 .address(hotel.getAddress())
                 .starRating(hotel.getStarRating())
+                .totalReviews(hotel.getTotalReviews())
                 .locationName(hotel.getLocation() != null ? hotel.getLocation().getName() : null)
                 .thumbnail(hotel.getImages() != null && !hotel.getImages().isEmpty()
                         ? hotel.getImages().get(0).getImageUrl()
                         : null)
-                .minPrice(minPrice)
+                .minPrice(hotel.getPricePerNightFrom())
                 .hotelType(hotel.getType() != null ? hotel.getType().name() : null)
                 .build();
     }

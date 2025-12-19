@@ -15,7 +15,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class HotelFilterRequest {
 
-    private String locationSlug; // Slug địa điểm (VD: "da-nang", "ho-chi-minh")
+    private Long id; // Slug địa điểm (VD: "da-nang", "ho-chi-minh")
 
     private Double minPrice; // Giá tối thiểu
     private Double maxPrice; // Giá tối đa

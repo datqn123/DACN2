@@ -64,7 +64,7 @@ public interface LocationInterfaceRepository extends JpaRepository<Location, Lon
         List<Location> getFeaturedLocationsToHotelPage(Pageable pageable);
 
         // Dropdown cho search flight
-        @Query("SELECT new com.example.dacn2.dto.response.DropdownLocationResponse(l.id, l.name) FROM Location l")
+        @Query("SELECT new com.example.dacn2.dto.response.DropdownLocationResponse(l.id, l.name, COUNT(h.id)) FROM Location l LEFT JOIN l.hotels h GROUP BY l.id, l.name")
         List<DropdownLocationResponse> getDropdownLocations();
 
         @Query("SELECT l FROM Location l where l.parent.slug = 'viet-nam'")
