@@ -32,6 +32,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/test/**").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers("/api/payment/**").permitAll()
                         // WebSocket endpoint - cho phép handshake
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers(

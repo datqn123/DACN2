@@ -44,7 +44,7 @@ public class PaymentController {
     private String frontendBaseUrl;
 
     // URL của backend để PayOS callback về
-    @Value("${app.backend.url:http://localhost:8080}")
+    @Value("${app.backend.url:https://tripgo-api.onrender.com/}")
     private String backendBaseUrl;
 
     /**
