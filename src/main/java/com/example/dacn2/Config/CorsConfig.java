@@ -12,12 +12,24 @@ public class CorsConfig {
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
-        // 1. Cho phép tất cả các domain truy cập (Hoặc chỉ định rõ http://localhost:3000)
-        corsConfiguration.addAllowedOrigin("*");
-        // 2. Cho phép tất cả các method (GET, POST, PUT, DELETE...)
+
+        // 1. Cho phép các domain cụ thể (không dùng "*" vì xung đột với credentials)
+        corsConfiguration.addAllowedOriginPattern("http://localhost:3000");
+        corsConfiguration.addAllowedOriginPattern("http://localhost:5173");
+        corsConfiguration.addAllowedOriginPattern("https://*.vercel.app");
+        corsConfiguration.addAllowedOriginPattern("https://*.netlify.app");
+
+        // 2. Cho phép tất cả các method (GET, POST, PUT, DELETE, OPTIONS...)
         corsConfiguration.addAllowedMethod("*");
+
         // 3. Cho phép tất cả các Header
         corsConfiguration.addAllowedHeader("*");
+
+        // 4. Cho phép gửi credentials (cookies, authorization headers)
+        corsConfiguration.setAllowCredentials(true);
+
+        // 5. Expose các headers để frontend có thể đọc
+        corsConfiguration.addExposedHeader("Authorization");
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfiguration);
