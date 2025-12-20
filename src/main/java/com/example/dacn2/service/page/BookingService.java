@@ -455,6 +455,21 @@ public class BookingService {
     }
 
     /**
+     * Lấy danh sách vé máy bay đã đặt (tất cả booking FLIGHT)
+     */
+    public List<BookingResponse> getMyFlightBookings() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Account user = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User không tồn tại"));
+
+        List<Booking> bookings = bookingRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
+        return bookings.stream()
+                .filter(b -> b.getType() == BookingType.FLIGHT)
+                .map(BookingResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Lấy danh sách đơn hàng đã hủy của user đang đăng nhập
      */
     public List<BookingResponse> getMyCancelledBookings() {

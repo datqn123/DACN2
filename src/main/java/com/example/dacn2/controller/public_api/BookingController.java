@@ -69,6 +69,15 @@ public class BookingController {
                 .build();
     }
 
+    // Lấy danh sách vé máy bay đã đặt (tất cả booking FLIGHT)
+    @GetMapping("/my-flights")
+    public ApiResponse<List<BookingResponse>> getMyFlightBookings() {
+        return ApiResponse.<List<BookingResponse>>builder()
+                .result(bookingService.getMyFlightBookings())
+                .message("Lấy danh sách vé máy bay đã đặt thành công")
+                .build();
+    }
+
     // Lấy danh sách đơn hàng đã hủy
     @GetMapping("/my-cancelled")
     public ApiResponse<List<BookingResponse>> getMyCancelledBookings() {
