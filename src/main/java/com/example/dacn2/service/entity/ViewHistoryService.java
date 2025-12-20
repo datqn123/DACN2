@@ -35,7 +35,7 @@ public class ViewHistoryService {
                 .map(Account::getId).orElse(null);
     }
 
-    // Ghi nhận lượt xem hotel
+    // Ghi nhận lượt xem hotel - check duplicate trong 24h
     @Transactional
     public ViewHistory trackView(Long accountId, Long hotelId, String source, String searchQuery) {
         Account account = accountRepository.findById(accountId).orElse(null);
@@ -43,6 +43,20 @@ public class ViewHistoryService {
         if (account == null || hotel == null)
             return null;
 
+        // Check xem đã có view history trong 24h gần đây chưa
+        var existingView = viewHistoryRepository.findFirstByAccountAndHotelOrderByViewedAtDesc(account, hotel);
+        if (existingView.isPresent()) {
+            ViewHistory existing = existingView.get();
+            // Nếu đã xem trong vòng 24h -> chỉ cập nhật thời gian
+            if (existing.getViewedAt().isAfter(LocalDateTime.now().minusHours(24))) {
+                existing.setViewedAt(LocalDateTime.now());
+                log.info("Updated existing view: accountId={}, hotelId={}, viewHistoryId={}",
+                        accountId, hotelId, existing.getId());
+                return viewHistoryRepository.save(existing);
+            }
+        }
+
+        // Tạo mới nếu chưa có hoặc đã quá 24h
         ViewHistory viewHistory = ViewHistory.builder()
                 .account(account)
                 .hotel(hotel)
@@ -58,7 +72,7 @@ public class ViewHistoryService {
                 .hotelAverageRating(hotel.getAverageRating())
                 .build();
 
-        log.info("Tracked view: accountId={}, hotelId={}", accountId, hotelId);
+        log.info("Created new view: accountId={}, hotelId={}", accountId, hotelId);
         return viewHistoryRepository.save(viewHistory);
     }
 

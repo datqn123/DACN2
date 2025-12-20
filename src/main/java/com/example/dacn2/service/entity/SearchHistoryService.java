@@ -82,7 +82,7 @@ public class SearchHistoryService {
 
         // Xóa nếu đã tồn tại (để cập nhật thời gian)
         Optional<SearchHistory> existing = searchHistoryRepository
-                .findByAccountIdAndKeywordAndSearchType(account.getId(), keyword, searchType);
+                .findFirstByAccountIdAndKeywordAndSearchTypeOrderByCreatedAtDesc(account.getId(), keyword, searchType);
         existing.ifPresent(searchHistoryRepository::delete);
 
         Location location = locationId != null
