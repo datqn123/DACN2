@@ -455,6 +455,21 @@ public class BookingService {
     }
 
     /**
+     * Lấy danh sách đơn hàng đã hủy của user đang đăng nhập
+     */
+    public List<BookingResponse> getMyCancelledBookings() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Account user = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User không tồn tại"));
+
+        List<Booking> bookings = bookingRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
+        return bookings.stream()
+                .filter(b -> b.getStatus() == BookingStatus.CANCELLED)
+                .map(BookingResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Tra cứu đơn hàng theo mã booking code
      */
     public BookingResponse lookupByCode(String bookingCode) {

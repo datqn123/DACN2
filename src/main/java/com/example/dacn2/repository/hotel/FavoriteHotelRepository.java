@@ -22,8 +22,8 @@ public interface FavoriteHotelRepository extends JpaRepository<FavoriteHotel, Lo
     // Lấy tất cả favorites của user
     List<FavoriteHotel> findByAccountIdOrderByCreatedAtDesc(Long accountId);
 
-    // Xóa favorite
-    @Modifying
+    // Xóa favorite (xóa TẤT CẢ duplicates nếu có)
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("DELETE FROM FavoriteHotel f WHERE f.account.id = :accountId AND f.hotel.id = :hotelId")
     void deleteByAccountIdAndHotelId(@Param("accountId") Long accountId, @Param("hotelId") Long hotelId);
 

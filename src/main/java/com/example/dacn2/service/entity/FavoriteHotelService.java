@@ -9,6 +9,7 @@ import com.example.dacn2.repository.hotel.FavoriteHotelRepository;
 import com.example.dacn2.repository.hotel.HotelRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class FavoriteHotelService {
 
     private final FavoriteHotelRepository favoriteHotelRepository;
@@ -44,7 +46,9 @@ public class FavoriteHotelService {
         }
 
         if (favoriteHotelRepository.existsByAccountIdAndHotelId(accountId, hotelId)) {
+            log.info("🗑️ Removing favorite: accountId={}, hotelId={}", accountId, hotelId);
             favoriteHotelRepository.deleteByAccountIdAndHotelId(accountId, hotelId);
+            log.info("✅ Favorite removed successfully");
             return false; // Đã xóa
         } else {
             Hotel hotel = hotelRepository.findById(hotelId).orElse(null);
@@ -57,6 +61,7 @@ public class FavoriteHotelService {
                     .hotel(hotel)
                     .build();
             favoriteHotelRepository.save(favorite);
+            log.info("❤️ Added favorite: accountId={}, hotelId={}", accountId, hotelId);
 
             // Ghi nhận vào ViewHistory nếu có lịch sử xem
             viewHistoryService.markClickedFavorite(accountId, hotelId);
@@ -79,6 +84,7 @@ public class FavoriteHotelService {
 
     /**
      * Lấy danh sách yêu thích - Safe version
+     * Đã loại bỏ duplicate hotels (chỉ lấy favorite gần nhất cho mỗi hotel)
      * 
      * @return list rỗng nếu chưa đăng nhập
      */
@@ -87,8 +93,18 @@ public class FavoriteHotelService {
             return Collections.emptyList();
         }
         List<FavoriteHotel> favorites = favoriteHotelRepository.findByAccountIdOrderByCreatedAtDesc(accountId);
+
+        // Loại bỏ duplicate hotels - chỉ giữ cái gần nhất (đã sort DESC)
+        // Dùng LinkedHashMap để preserve order
         return favorites.stream()
-                .map(fav -> convertToCard(fav.getHotel()))
+                .collect(Collectors.toMap(
+                        fav -> fav.getHotel().getId(), // key: hotelId
+                        fav -> convertToCard(fav.getHotel()), // value: HotelCardResponse
+                        (existing, replacement) -> existing, // nếu trùng, giữ cái đầu tiên (mới nhất)
+                        java.util.LinkedHashMap::new // preserve insertion order
+                ))
+                .values()
+                .stream()
                 .collect(Collectors.toList());
     }
 
@@ -106,12 +122,18 @@ public class FavoriteHotelService {
 
     /**
      * Đếm số yêu thích - Safe version
+     * Đếm số hotel DISTINCT (không đếm duplicate)
      */
     public long countFavoritesSafe(Long accountId) {
         if (accountId == null) {
             return 0;
         }
-        return favoriteHotelRepository.findByAccountIdOrderByCreatedAtDesc(accountId).size();
+        // Đếm distinct hotels, không đếm duplicate records
+        return favoriteHotelRepository.findByAccountIdOrderByCreatedAtDesc(accountId)
+                .stream()
+                .map(fav -> fav.getHotel().getId())
+                .distinct()
+                .count();
     }
 
     private HotelCardResponse convertToCard(Hotel hotel) {

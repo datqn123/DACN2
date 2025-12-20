@@ -69,6 +69,15 @@ public class BookingController {
                 .build();
     }
 
+    // Lấy danh sách đơn hàng đã hủy
+    @GetMapping("/my-cancelled")
+    public ApiResponse<List<BookingResponse>> getMyCancelledBookings() {
+        return ApiResponse.<List<BookingResponse>>builder()
+                .result(bookingService.getMyCancelledBookings())
+                .message("Lấy danh sách đơn hàng đã hủy thành công")
+                .build();
+    }
+
     // Tra cứu đơn hàng theo mã booking
     @GetMapping("/lookup/{bookingCode}")
     public ApiResponse<BookingResponse> lookupBooking(@PathVariable String bookingCode) {

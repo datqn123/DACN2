@@ -2,6 +2,7 @@ package com.example.dacn2.controller.public_api;
 
 import com.example.dacn2.dto.ApiResponse;
 import com.example.dacn2.dto.response.home.HotelCardResponse;
+import com.example.dacn2.repository.auth.AccountRepositoryInterface;
 import com.example.dacn2.service.entity.FavoriteHotelService;
 import lombok.RequiredArgsConstructor;
 
@@ -20,7 +21,7 @@ import java.util.Map;
 public class FavoriteHotelController {
 
         private final FavoriteHotelService favoriteHotelService;
-        private final com.example.dacn2.repository.auth.AccountRepositoryInterface accountRepository;
+        private final AccountRepositoryInterface accountRepository;
 
         @PostMapping("/{hotelId}")
         public ApiResponse<Map<String, Object>> toggleFavorite(
