@@ -36,7 +36,7 @@ public class TourController {
         @GetMapping
         public ApiResponse<Page<TourCardResponse>> getAll(
                         @RequestParam(defaultValue = "0") int page,
-                        @RequestParam(defaultValue = "10") int size,
+                        @RequestParam(defaultValue = "12") int size,
                         @RequestParam(defaultValue = "id") String sortBy,
                         @RequestParam(defaultValue = "desc") String sortDir) {
                 Sort sort = sortDir.equalsIgnoreCase("asc")

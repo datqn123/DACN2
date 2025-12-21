@@ -8,6 +8,7 @@ import com.example.dacn2.entity.Location;
 import com.example.dacn2.entity.hotel.Amenity;
 import com.example.dacn2.entity.hotel.Hotel;
 import com.example.dacn2.entity.hotel.HotelView;
+import com.example.dacn2.entity.hotel.Room;
 import com.example.dacn2.repository.hotel.AmenityRepository;
 import com.example.dacn2.repository.hotel.HotelRepository;
 import com.example.dacn2.repository.location.LocationInterfaceRepository; // Hoặc LocationRepository tùy tên bạn đặt
@@ -82,7 +83,10 @@ public class HotelService {
             throw new RuntimeException("Lỗi khi upload ảnh: " + e.getMessage());
         }
 
-        return hotelRepository.save(hotel);
+        Hotel savedHotel = hotelRepository.save(hotel);
+        // Tự động cập nhật giá từ phòng rẻ nhất
+        updateMinPriceFromRooms(savedHotel.getId());
+        return savedHotel;
     }
 
     @Transactional
@@ -99,7 +103,10 @@ public class HotelService {
             throw new RuntimeException("Lỗi khi upload ảnh: " + e.getMessage());
         }
 
-        return hotelRepository.save(hotel);
+        Hotel updatedHotel = hotelRepository.save(hotel);
+        // Tự động cập nhật giá từ phòng rẻ nhất
+        updateMinPriceFromRooms(updatedHotel.getId());
+        return updatedHotel;
     }
 
     @Transactional
@@ -226,5 +233,27 @@ public class HotelService {
 
         // Cập nhật lại danh sách ảnh cho Hotel
         hotel.setImages(currentImages);
+    }
+
+    /**
+     * Tự động cập nhật pricePerNightFrom từ phòng có giá rẻ nhất
+     * Gọi method này sau khi tạo/update hotel hoặc khi rooms thay đổi
+     */
+    @Transactional
+    public void updateMinPriceFromRooms(Long hotelId) {
+        Hotel hotel = hotelRepository.findById(hotelId)
+                .orElseThrow(() -> new RuntimeException("Hotel không tồn tại"));
+
+        // Tìm giá rẻ nhất từ danh sách phòng
+        Double minPrice = hotel.getRooms() != null && !hotel.getRooms().isEmpty()
+                ? hotel.getRooms().stream()
+                        .filter(room -> room.getPrice() != null && room.getPrice() > 0)
+                        .map(Room::getPrice)
+                        .min(Double::compareTo)
+                        .orElse(null)
+                : null;
+
+        hotel.setPricePerNightFrom(minPrice);
+        hotelRepository.save(hotel);
     }
 }

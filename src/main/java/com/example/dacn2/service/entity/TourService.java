@@ -179,13 +179,18 @@ public class TourService {
             tourImages.addAll(tour.getImages()); // Giữ lại ảnh cũ nếu muốn
         }
 
+        String thumbnail = null;
+
         for (String url : allImageLinks) {
             TourImage img = new TourImage();
             img.setImageUrl(url);
             img.setTour(tour);
+            thumbnail = url;
             tourImages.add(img);
         }
         tour.setImages(tourImages);
+
+        tour.setThumbnail(thumbnail);
 
         return tourRepository.save(tour);
     }
