@@ -15,6 +15,10 @@ import org.springframework.stereotype.Repository;
 public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificationExecutor<Tour> {
     boolean existsBySlug(String slug); // Check trùng URL
 
+    // đếm tổng tour
+    @Query("SELECT COUNT(t) FROM Tour t")
+    Long countTotalTours();
+
     @Query(value = "SELECT * FROM tours ORDER BY RAND()", nativeQuery = true)
     List<Tour> findFeaturedTours(Pageable pageable);
 

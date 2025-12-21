@@ -101,6 +101,7 @@ public class SearchHotelService {
         // Query trực tiếp DTO Projection - CHỈ LẤY CÁC CỘT CẦN THIẾT
         Page<HotelCardResponse> hotelPage = hotelRepository.findHotelCardsWithFilters(
                 filter.getId(), // locationId - lấy hotels thuộc location này hoặc location con
+                filter.getName(), // name - tìm kiếm theo tên khách sạn
                 filter.getMinStarRating(),
                 filter.getHotelType(),
                 filter.getMinPrice(),

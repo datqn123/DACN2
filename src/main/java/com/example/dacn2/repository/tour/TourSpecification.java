@@ -25,6 +25,13 @@ public class TourSpecification {
                         filter.getDestinationId()));
             }
 
+            // Filter theo tên tour (LIKE - không phân biệt hoa thường)
+            if (filter.getName() != null && !filter.getName().trim().isEmpty()) {
+                predicates.add(criteriaBuilder.like(
+                        criteriaBuilder.lower(root.get("title")),
+                        "%" + filter.getName().toLowerCase() + "%"));
+            }
+
             // Filter theo khoảng giá (minPrice)
             if (filter.getMinPrice() != null) {
                 predicates.add(criteriaBuilder.greaterThanOrEqualTo(

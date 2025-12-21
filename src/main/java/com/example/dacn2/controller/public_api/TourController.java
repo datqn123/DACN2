@@ -22,54 +22,56 @@ import com.example.dacn2.service.entity.TourService;
 @RequestMapping("/api/public/tours")
 public class TourController {
 
-    @Autowired
-    private TourService tourService;
+        @Autowired
+        private TourService tourService;
 
-    @GetMapping("/{id}")
-    public ApiResponse<Tour> getDetail(@PathVariable Long id) {
-        return ApiResponse.<Tour>builder()
-                .result(tourService.getById(id))
-                .message("Lấy chi tiết tour thành công")
-                .build();
-    }
+        @GetMapping("/{id}")
+        public ApiResponse<Tour> getDetail(@PathVariable Long id) {
+                return ApiResponse.<Tour>builder()
+                                .result(tourService.getById(id))
+                                .message("Lấy chi tiết tour thành công")
+                                .build();
+        }
 
-    @GetMapping
-    public ApiResponse<Page<TourCardResponse>> getAll(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDir) {
-        Sort sort = sortDir.equalsIgnoreCase("asc")
-                ? Sort.by(sortBy).ascending()
-                : Sort.by(sortBy).descending();
-        Pageable pageable = PageRequest.of(page, size, sort);
+        @GetMapping
+        public ApiResponse<Page<TourCardResponse>> getAll(
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "10") int size,
+                        @RequestParam(defaultValue = "id") String sortBy,
+                        @RequestParam(defaultValue = "desc") String sortDir) {
+                Sort sort = sortDir.equalsIgnoreCase("asc")
+                                ? Sort.by(sortBy).ascending()
+                                : Sort.by(sortBy).descending();
+                Pageable pageable = PageRequest.of(page, size, sort);
 
-        return ApiResponse.<Page<TourCardResponse>>builder()
-                .result(tourService.getAllPaged(pageable))
-                .message("Lấy danh sách tour thành công")
-                .build();
-    }
+                return ApiResponse.<Page<TourCardResponse>>builder()
+                                .result(tourService.getAllPaged(pageable))
+                                .message("Lấy danh sách tour thành công")
+                                .build();
+        }
 
-    @GetMapping("/search")
-    public ApiResponse<TourSearchResponse> searchTours(
-            @RequestParam(required = false) Long destinationId,
-            @RequestParam(required = false) Double minPrice,
-            @RequestParam(required = false) Double maxPrice,
-            @RequestParam(required = false) String durationCategory,
-            @RequestParam(required = false) String sortByPrice,
-            @RequestParam(required = false, defaultValue = "0") Integer page) {
-        TourFilterRequest filter = TourFilterRequest.builder()
-                .destinationId(destinationId)
-                .minPrice(minPrice)
-                .maxPrice(maxPrice)
-                .durationCategory(durationCategory)
-                .sortByPrice(sortByPrice)
-                .page(page)
-                .build();
+        @GetMapping("/search")
+        public ApiResponse<TourSearchResponse> searchTours(
+                        @RequestParam(required = false) Long destinationId,
+                        @RequestParam(required = false) String name,
+                        @RequestParam(required = false) Double minPrice,
+                        @RequestParam(required = false) Double maxPrice,
+                        @RequestParam(required = false) String durationCategory,
+                        @RequestParam(required = false) String sortByPrice,
+                        @RequestParam(required = false, defaultValue = "0") Integer page) {
+                TourFilterRequest filter = TourFilterRequest.builder()
+                                .destinationId(destinationId)
+                                .name(name)
+                                .minPrice(minPrice)
+                                .maxPrice(maxPrice)
+                                .durationCategory(durationCategory)
+                                .sortByPrice(sortByPrice)
+                                .page(page)
+                                .build();
 
-        return ApiResponse.<TourSearchResponse>builder()
-                .result(tourService.searchToursWithFilter(filter))
-                .message("Tìm kiếm tour thành công")
-                .build();
-    }
+                return ApiResponse.<TourSearchResponse>builder()
+                                .result(tourService.searchToursWithFilter(filter))
+                                .message("Tìm kiếm tour thành công")
+                                .build();
+        }
 }

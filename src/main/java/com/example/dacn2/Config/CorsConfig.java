@@ -16,7 +16,7 @@ public class CorsConfig {
     public CorsFilter corsFilter() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
 
-        // 1. Cho phép các domain từ config (application.properties hoặc ENV)
+        // Cho phép các domain từ config (application.properties hoặc ENV)
         String[] origins = allowedOrigins.split(",");
         for (String origin : origins) {
             corsConfiguration.addAllowedOriginPattern(origin.trim());

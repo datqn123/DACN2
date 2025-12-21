@@ -2,6 +2,7 @@ package com.example.dacn2.controller.admin;
 
 import com.example.dacn2.dto.ApiResponse;
 import com.example.dacn2.dto.request.hotel.HotelRequest;
+import com.example.dacn2.dto.response.home.HotelSearchResponse;
 import com.example.dacn2.dto.response.home.LocationSearchResult;
 import com.example.dacn2.entity.hotel.Hotel;
 import com.example.dacn2.service.entity.HotelService;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -91,13 +93,23 @@ public class AdminHotelController {
                                 .build();
         }
 
-        // 5. Xóa (Giữ nguyên)
         @DeleteMapping("/{id}")
         @PreAuthorize("hasRole('ADMIN')")
         public ApiResponse<Void> delete(@PathVariable Long id) {
                 hotelService.delete(id);
                 return ApiResponse.<Void>builder()
                                 .message("Xóa khách sạn thành công")
+                                .build();
+        }
+
+        @GetMapping("/navigate")
+        @PreAuthorize("hasRole('ADMIN')")
+        public ApiResponse<HotelSearchResponse> getAllNavigate(
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "12") int size) {
+                return ApiResponse.<HotelSearchResponse>builder()
+                                .result(hotelService.getAllNavigate(page, size))
+                                .message("Lấy danh sách khách sạn thành công")
                                 .build();
         }
 }

@@ -42,22 +42,16 @@ public class HotelService {
     @Autowired
     private FileUploadService fileUploadService;
 
-    // 1. Lấy tất cả
     public List<Hotel> getAll() {
         return hotelRepository.findAll();
     }
 
-    // 1.1. Lấy tất cả có phân trang (cho trang hotel listing)
     public HotelSearchResponse getAllNavigate(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Hotel> hotelPage = hotelRepository.findAll(pageable);
-
-        List<HotelCardResponse> hotelCards = hotelPage.getContent().stream()
-                .map(this::convertToCard)
-                .collect(Collectors.toList());
+        Page<HotelCardResponse> hotelPage = hotelRepository.findAllHotelCards(pageable);
 
         return HotelSearchResponse.builder()
-                .hotels(hotelCards)
+                .hotels(hotelPage.getContent())
                 .currentPage(hotelPage.getNumber())
                 .totalPages(hotelPage.getTotalPages())
                 .totalElements(hotelPage.getTotalElements())
@@ -67,26 +61,21 @@ public class HotelService {
                 .build();
     }
 
-    // 2. Lấy chi tiết
     public Hotel getById(Long id) {
         return hotelRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khách sạn ID: " + id));
     }
 
-    // 3. Tạo mới (Create)
     @Transactional
     public Hotel create(HotelRequest request, List<MultipartFile> images) {
-        // Check trùng lặp (Tên + Địa chỉ)
         if (hotelRepository.existsByNameAndAddress(request.getName(), request.getAddress())) {
             throw new RuntimeException("Khách sạn '" + request.getName() + "' tại địa chỉ này đã tồn tại!");
         }
 
         Hotel hotel = new Hotel();
 
-        // Map thông tin cơ bản
         mapBasicInfo(request, hotel);
 
-        // Xử lý ảnh (Thêm mới)
         try {
             processImages(request.getImageUrls(), images, hotel);
         } catch (IOException e) {
@@ -96,7 +85,6 @@ public class HotelService {
         return hotelRepository.save(hotel);
     }
 
-    // 4. Cập nhật (Update)
     @Transactional
     public Hotel update(Long id, HotelRequest request, List<MultipartFile> images) {
         Hotel hotel = getById(id); // Tìm khách sạn cũ
@@ -114,7 +102,6 @@ public class HotelService {
         return hotelRepository.save(hotel);
     }
 
-    // 5. Xóa (Delete)
     @Transactional
     public void delete(Long id) {
         if (!hotelRepository.existsById(id)) {
@@ -127,7 +114,6 @@ public class HotelService {
     public List<HotelCardResponse> getHotelByLocation(Long locationId) {
         return hotelRepository.findByLocationId(locationId);
     }
-    // HELPER
 
     private HotelCardResponse convertToCard(Hotel hotel) {
         HotelCardResponse dto = new HotelCardResponse();
@@ -203,6 +189,11 @@ public class HotelService {
         // 1. Xử lý Link ảnh string (Copy paste)
         if (urlLinks != null && !urlLinks.isEmpty()) {
             for (String url : urlLinks) {
+                // Bỏ qua URL null hoặc rỗng
+                if (url == null || url.trim().isEmpty()) {
+                    continue;
+                }
+
                 HotelImage image = new HotelImage();
                 image.setImageUrl(url);
                 image.setHotel(hotel);
@@ -213,8 +204,18 @@ public class HotelService {
         // 2. Xử lý File upload (Multipart)
         if (files != null && !files.isEmpty()) {
             for (MultipartFile file : files) {
+                // Bỏ qua file rỗng
+                if (file.isEmpty()) {
+                    continue;
+                }
+
                 // Gọi service upload lên Cloud
                 String urlFromCloud = fileUploadService.uploadFile(file);
+
+                // Kiểm tra xem upload có thành công không
+                if (urlFromCloud == null || urlFromCloud.trim().isEmpty()) {
+                    continue;
+                }
 
                 HotelImage image = new HotelImage();
                 image.setImageUrl(urlFromCloud);

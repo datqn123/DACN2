@@ -14,6 +14,8 @@ public class TourFilterRequest {
 
     private Long destinationId; // ID địa điểm đến (VD: 1, 2, 3)
 
+    private String name; // Tên tour (search LIKE)
+
     private Double minPrice; // Giá tối thiểu
     private Double maxPrice; // Giá tối đa
 

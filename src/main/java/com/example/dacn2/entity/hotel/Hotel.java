@@ -99,7 +99,7 @@ public class Hotel extends BaseEntity { // Kế thừa id, createdAt, updatedAt 
         private List<HotelImage> images;
 
         // 5. Danh sách phòng
-        @OneToMany(mappedBy = "hotel")
+        @OneToMany(mappedBy = "hotel", cascade = CascadeType.REMOVE)
         private List<Room> rooms;
 
         // 6. Danh sách review (cho recommendation system)

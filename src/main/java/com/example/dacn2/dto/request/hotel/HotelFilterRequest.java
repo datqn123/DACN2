@@ -17,6 +17,8 @@ public class HotelFilterRequest {
 
     private Long id; // Slug địa điểm (VD: "da-nang", "ho-chi-minh")
 
+    private String name; // Tên khách sạn (search LIKE)
+
     private Double minPrice; // Giá tối thiểu
     private Double maxPrice; // Giá tối đa
 
