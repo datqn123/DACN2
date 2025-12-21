@@ -45,11 +45,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // Endpoint /ws để client handshake
         // withSockJS() = fallback cho browser cũ không hỗ trợ WebSocket
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("*") // Cho phép mọi origin (CORS)
-                .withSockJS(); // Hỗ trợ SockJS fallback
-
-        // Endpoint không có SockJS (cho native WebSocket client)
-        registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("*");
+                .setAllowedOriginPatterns("http://localhost:3000", "http://localhost:4000") // Cho phép frontend
+                                                                                            // (React/Next.js)
+                .withSockJS();
     }
 }

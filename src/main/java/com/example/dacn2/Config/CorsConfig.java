@@ -9,14 +9,20 @@ import org.springframework.web.filter.CorsFilter;
 @Configuration
 public class CorsConfig {
 
+    @org.springframework.beans.factory.annotation.Value("${app.cors.allowed-origins}")
+    private String allowedOrigins;
+
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
 
-        // 1. Cho phép các domain cụ thể (không dùng "*" vì xung đột với credentials)
-        corsConfiguration.addAllowedOriginPattern("http://localhost:3000");
-        corsConfiguration.addAllowedOriginPattern("http://localhost:5173");
-        corsConfiguration.addAllowedOriginPattern("http://localhost:8080");
+        // 1. Cho phép các domain từ config (application.properties hoặc ENV)
+        String[] origins = allowedOrigins.split(",");
+        for (String origin : origins) {
+            corsConfiguration.addAllowedOriginPattern(origin.trim());
+        }
+
+        // Default fallbacks (an toàn)
         corsConfiguration.addAllowedOriginPattern("https://*.vercel.app");
         corsConfiguration.addAllowedOriginPattern("https://*.netlify.app");
         corsConfiguration.addAllowedOriginPattern("https://*.onrender.com");

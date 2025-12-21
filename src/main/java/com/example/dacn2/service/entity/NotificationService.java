@@ -70,7 +70,7 @@ public class NotificationService {
         // Destination: /user/{userId}/queue/notifications
         NotificationResponse response = NotificationResponse.fromEntity(notification);
         messagingTemplate.convertAndSendToUser(
-                userId.toString(), // User ID
+                user.getEmail(), // User ID
                 "/queue/notifications", // Destination (Spring tự thêm /user/{userId} phía trước)
                 response // Payload
         );
