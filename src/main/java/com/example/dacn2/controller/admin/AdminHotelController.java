@@ -32,7 +32,6 @@ public class AdminHotelController {
         @Autowired
         private HotelService hotelService;
 
-        // 1. Lấy danh sách (Giữ nguyên)
         @GetMapping
         @PreAuthorize("hasRole('ADMIN')")
         public ApiResponse<List<Hotel>> getAll() {
@@ -41,7 +40,6 @@ public class AdminHotelController {
                                 .build();
         }
 
-        // 2. Lấy chi tiết (Giữ nguyên)
         @GetMapping("/{id}")
         @PreAuthorize("hasRole('ADMIN')")
         public ApiResponse<Hotel> getDetail(@PathVariable Long id) {
@@ -50,13 +48,12 @@ public class AdminHotelController {
                                 .build();
         }
 
-        // 3. TẠO MỚI (Sửa để nhận File + JSON)
         @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
         @PreAuthorize("hasRole('ADMIN')")
         public ApiResponse<Hotel> create(
-                        @RequestPart("hotel") String hotelRequestJson, // Nhận JSON dạng String
-                        @RequestPart(value = "images", required = false) List<MultipartFile> images // Nhận File
-        ) throws IOException {
+                        @RequestPart("hotel") String hotelRequestJson,
+                        @RequestPart(value = "images", required = false) List<MultipartFile> images)
+                        throws IOException {
 
                 // Chuyển String JSON thành Object Java
                 ObjectMapper mapper = new ObjectMapper();
@@ -71,7 +68,6 @@ public class AdminHotelController {
                                 .build();
         }
 
-        // 4. CẬP NHẬT (Sửa để nhận File + JSON)
         @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
         @PreAuthorize("hasRole('ADMIN')")
         public ApiResponse<Hotel> update(

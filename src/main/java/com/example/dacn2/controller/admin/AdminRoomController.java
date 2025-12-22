@@ -26,8 +26,6 @@ public class AdminRoomController {
                 .build();
     }
 
-    // API tìm phòng theo ID Khách sạn (Quan trọng để hiển thị)
-    // GET /api/admin/rooms/hotel/1
     @GetMapping("/hotel/{hotelId}")
     public ApiResponse<List<Room>> getByHotel(@PathVariable Long hotelId) {
         return ApiResponse.<List<Room>>builder()
