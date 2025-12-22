@@ -135,6 +135,7 @@ public class TourService {
         return saveTourToDB(new Tour(), request, uploadedUrls);
     }
 
+    @Transactional
     public Tour update(Long id, TourRequest request, List<MultipartFile> images) {
         // A. Kiểm tra tồn tại trước khi upload cho đỡ tốn công
         if (!tourRepository.existsById(id)) {
@@ -161,36 +162,45 @@ public class TourService {
         // 1. Map thông tin cơ bản & Lịch trình
         mapBasicInfo(request, tour);
 
-        // 2. Xử lý ảnh (Gộp link text và link vừa upload)
-        List<String> allImageLinks = new ArrayList<>();
-
-        // a. Link có sẵn (String)
+        // 2. Xử lý ảnh
+        // Tổng hợp tất cả URL ảnh đích (gồm ảnh cũ giữ lại + ảnh mới upload)
+        List<String> targetUrls = new ArrayList<>();
         if (request.getImageUrls() != null) {
-            allImageLinks.addAll(request.getImageUrls());
+            targetUrls.addAll(request.getImageUrls());
         }
-        // b. Link vừa upload xong
-        allImageLinks.addAll(uploadedUrls);
-
-        // 3. Tạo đối tượng TourImage và gán vào Tour
-        List<TourImage> tourImages = new ArrayList<>();
-        // (Nếu update, đoạn này có thể cần logic giữ lại ảnh cũ, ở đây mình đang tạo
-        // list mới)
-        if (tour.getImages() != null) {
-            tourImages.addAll(tour.getImages()); // Giữ lại ảnh cũ nếu muốn
+        if (uploadedUrls != null) {
+            targetUrls.addAll(uploadedUrls);
         }
 
-        String thumbnail = null;
-
-        for (String url : allImageLinks) {
-            TourImage img = new TourImage();
-            img.setImageUrl(url);
-            img.setTour(tour);
-            thumbnail = url;
-            tourImages.add(img);
+        // Khởi tạo danh sách ảnh của Tour nếu chưa có
+        if (tour.getImages() == null) {
+            tour.setImages(new ArrayList<>());
         }
-        tour.setImages(tourImages);
 
-        tour.setThumbnail(thumbnail);
+        // a. XÓA những ảnh không còn nằm trong danh sách đích
+        // (Nhờ orphanRemoval = true bên Entity, việc remove khỏi list sẽ xóa DB)
+        tour.getImages().removeIf(img -> !targetUrls.contains(img.getImageUrl()));
+
+        // b. THÊM những ảnh mới chưa có trong danh sách hiện tại
+        List<String> currentUrls = tour.getImages().stream()
+                .map(TourImage::getImageUrl)
+                .toList();
+
+        for (String url : targetUrls) {
+            if (!currentUrls.contains(url)) {
+                TourImage img = new TourImage();
+                img.setImageUrl(url);
+                img.setTour(tour);
+                tour.getImages().add(img);
+            }
+        }
+
+        // 3. Cập nhật Thumbnail (Lấy cái đầu tiên làm thumbnail nếu có)
+        if (!targetUrls.isEmpty()) {
+            tour.setThumbnail(targetUrls.get(0));
+        } else {
+            tour.setThumbnail(null);
+        }
 
         return tourRepository.save(tour);
     }

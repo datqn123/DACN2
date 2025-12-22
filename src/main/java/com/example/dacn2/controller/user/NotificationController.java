@@ -25,6 +25,24 @@ public class NotificationController {
     private final NotificationService notificationService;
 
     /**
+     * Lưu notification từ client (Khi user bấm Đã xem)
+     * POST /api/notifications
+     */
+    @PostMapping
+    @Operation(summary = "Lưu thông báo từ client")
+    public ResponseEntity<NotificationResponse> create(
+            @RequestBody com.example.dacn2.dto.request.notification.NotificationRequest request) {
+
+        var notification = notificationService.saveFromClient(
+                request.getTitle(),
+                request.getMessage(),
+                request.getLink(),
+                request.getIsRead());
+
+        return ResponseEntity.ok(NotificationResponse.fromEntity(notification));
+    }
+
+    /**
      * Lấy tất cả notification của user
      * GET /api/notifications
      */

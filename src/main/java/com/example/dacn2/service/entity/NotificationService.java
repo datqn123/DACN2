@@ -78,6 +78,24 @@ public class NotificationService {
     }
 
     /**
+     * Gửi notification đến TẤT CẢ user (Broadcast)
+     * Chỉ gửi qua WebSocket, không lưu DB cho từng user (để tránh quá tải)
+     */
+    public void sendPublicNotification(String title, String message, String link) {
+        NotificationResponse response = NotificationResponse.builder()
+                .title(title)
+                .message(message)
+                .type(NotificationType.SYSTEM) // Mặc định là System
+                .link(link)
+                .isRead(false)
+                .build();
+
+        // Gửi đến topic chung
+        messagingTemplate.convertAndSend("/topic/public/notifications", response);
+        log.info("📢 Sent public notification: {}", title);
+    }
+
+    /**
      * Lấy danh sách notification của user đang đăng nhập
      */
     public List<NotificationResponse> getMyNotifications() {
@@ -127,6 +145,24 @@ public class NotificationService {
         Long userId = getCurrentUserId();
         int count = notificationRepository.markAllAsReadByUserId(userId);
         log.info("Marked {} notifications as read for user {}", count, userId);
+    }
+
+    @Transactional
+    public Notification saveFromClient(String title, String message, String link, Boolean isRead) {
+        Long userId = getCurrentUserId();
+        Account user = accountRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User không tồn tại"));
+
+        Notification notification = Notification.builder()
+                .user(user)
+                .title(title)
+                .message(message)
+                .type(NotificationType.SYSTEM)
+                .link(link)
+                .isRead(Boolean.TRUE.equals(isRead)) // Sử dụng giá trị gửi lên
+                .build();
+
+        return notificationRepository.save(notification);
     }
 
     /**

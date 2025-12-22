@@ -38,6 +38,8 @@ public class VoucherService {
     private LocationInterfaceRepository locationsRepository;
     @Autowired
     private FileUploadService fileUploadService;
+    @Autowired
+    private NotificationService notificationService;
 
     public List<VoucherResponse> getAll() {
         return voucherRepository.findAll().stream()
@@ -53,8 +55,22 @@ public class VoucherService {
 
         Voucher voucher = new Voucher();
         mapRequestToEntity(request, voucher, image);
+        Voucher savedVoucher = voucherRepository.save(voucher);
 
-        return voucherRepository.save(voucher);
+        // --- GỬI THÔNG BÁO ---
+        if (Boolean.TRUE.equals(request.getSendNotification())) {
+            String title = request.getNotificationTitle() != null ? request.getNotificationTitle()
+                    : "Voucher Mới!";
+            String message = request.getNotificationMessage() != null ? request.getNotificationMessage()
+                    : "Bạn ơi! Voucher " + savedVoucher.getName() + " vừa mới lên sóng. Săn ngay!";
+
+            // Link dẫn về trang danh sách voucher (hoặc chi tiết nếu có)
+            String link = "/voucher";
+
+            notificationService.sendPublicNotification(title, message, link);
+        }
+
+        return savedVoucher;
     }
 
     @Transactional

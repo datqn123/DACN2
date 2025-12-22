@@ -52,4 +52,9 @@ public class VoucherRequest {
 
     private Boolean forNewUsersOnly;
     private List<Long> appliedLocationIds;
+
+    // --- NOTIFICATION OPTIONS ---
+    private Boolean sendNotification; // Có gửi thông báo không?
+    private String notificationTitle; // Tiêu đề thông báo
+    private String notificationMessage; // Nội dung thông báo
 }
