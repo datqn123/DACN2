@@ -49,6 +49,12 @@ public class VoucherService {
 
     @Transactional
     public Voucher create(VoucherRequest request, MultipartFile image) throws IOException {
+        if (request.getStartDate() == null) {
+            throw new RuntimeException("Ngày bắt đầu (startDate) không được để trống");
+        }
+        if (request.getEndDate() == null) {
+            throw new RuntimeException("Ngày kết thúc (endDate) không được để trống");
+        }
         if (voucherRepository.existsByCode(request.getCode())) {
             throw new RuntimeException("Mã Voucher '" + request.getCode() + "' đã tồn tại!");
         }
@@ -78,13 +84,33 @@ public class VoucherService {
         Voucher voucher = voucherRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Voucher không tồn tại"));
 
+        if (request.getStartDate() == null) {
+            throw new RuntimeException("Ngày bắt đầu (startDate) không được để trống");
+        }
+        if (request.getEndDate() == null) {
+            throw new RuntimeException("Ngày kết thúc (endDate) không được để trống");
+        }
+
         // Nếu đổi code thì phải check trùng
         if (!voucher.getCode().equals(request.getCode()) && voucherRepository.existsByCode(request.getCode())) {
             throw new RuntimeException("Mã Voucher '" + request.getCode() + "' đã tồn tại!");
         }
 
         mapRequestToEntity(request, voucher, image);
-        return voucherRepository.save(voucher);
+        Voucher savedVoucher = voucherRepository.save(voucher);
+
+        // --- GỬI THÔNG BÁO (NẾU CÓ) ---
+        if (Boolean.TRUE.equals(request.getSendNotification())) {
+            String title = request.getNotificationTitle() != null ? request.getNotificationTitle()
+                    : "Cập nhật Voucher: " + savedVoucher.getName();
+            String message = request.getNotificationMessage() != null ? request.getNotificationMessage()
+                    : "Voucher " + savedVoucher.getCode() + " vừa được cập nhật ưu đãi mới. Xem ngay!";
+            String link = "/voucher";
+
+            notificationService.sendPublicNotification(title, message, link);
+        }
+
+        return savedVoucher;
     }
 
     @Transactional

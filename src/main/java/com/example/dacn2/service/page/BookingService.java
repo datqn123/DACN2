@@ -503,4 +503,60 @@ public class BookingService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng: " + id));
         return BookingResponse.fromEntity(booking);
     }
+
+    /**
+     * ADMIN: Lấy tất cả booking (Sắp xếp mới nhất)
+     */
+    public List<BookingResponse> getAllBookings() {
+        // Có thể thêm phân trang sau
+        List<Booking> bookings = bookingRepository.findAll(org.springframework.data.domain.Sort
+                .by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"));
+        return bookings.stream()
+                .map(BookingResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * ADMIN: Cập nhật trạng thái booking
+     */
+    public BookingResponse updateBookingStatus(Long id, BookingStatus status) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng: " + id));
+
+        booking.setStatus(status);
+
+        // Nếu chuyển sang CONFIRMED và chưa thanh toán -> đánh dấu đã thanh toán (tuỳ
+        // logic, ở đây tạm giữ nguyên isPaid)
+        // Nếu Admin xác nhận thủ công (ví dụ nhận tiền mặt), có thể cần
+        // setBookingAsPaid
+        if (status == BookingStatus.CONFIRMED) {
+            booking.setIsPaid(true); // Giả sử admin confirm là đã trả tiền
+        }
+
+        Booking saved = bookingRepository.save(booking);
+        return BookingResponse.fromEntity(saved);
+    }
+
+    /**
+     * ADMIN: Cập nhật thông tin đơn hàng (Chỉ thông tin liên hệ)
+     */
+    @Transactional
+    public BookingResponse updateBooking(Long id, BookingRequest request) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng: " + id));
+
+        // Cập nhật thông tin liên hệ
+        if (request.getContactName() != null)
+            booking.setContactName(request.getContactName());
+        if (request.getContactPhone() != null)
+            booking.setContactPhone(request.getContactPhone());
+        if (request.getContactEmail() != null)
+            booking.setContactEmail(request.getContactEmail());
+
+        // Cập nhật phương thức thanh toán
+        if (request.getPaymentMethod() != null)
+            booking.setPaymentMethod(request.getPaymentMethod());
+
+        return BookingResponse.fromEntity(bookingRepository.save(booking));
+    }
 }

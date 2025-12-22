@@ -31,7 +31,10 @@ public class VoucherRequest {
     private Double maxDiscountAmount; // Giảm tối đa bao nhiêu?
     private Double minOrderValue; // Đơn tối thiểu
 
+    @NotNull(message = "Ngày bắt đầu không được để trống")
     private LocalDateTime startDate;
+
+    @NotNull(message = "Ngày kết thúc không được để trống")
     private LocalDateTime endDate;
 
     private Integer usageLimit; // Tổng số lượng

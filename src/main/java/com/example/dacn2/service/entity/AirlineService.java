@@ -3,6 +3,7 @@ package com.example.dacn2.service.entity;
 import com.example.dacn2.dto.request.flight.AirlineRequest;
 import com.example.dacn2.entity.flight.Airline;
 import com.example.dacn2.repository.flight.AirlineRepository;
+import com.example.dacn2.repository.flight.FlightRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +14,7 @@ import java.util.List;
 public class AirlineService {
 
     private final AirlineRepository airlineRepository;
+    private final FlightRepository flightRepository;
 
     public List<Airline> getAll() {
         return airlineRepository.findAll();
@@ -40,6 +42,9 @@ public class AirlineService {
     }
 
     public void delete(Long id) {
+        if (flightRepository.existsByAirlineId(id)) {
+            throw new RuntimeException("Không thể xóa hãng bay này vì đang có chuyến bay hoạt động!");
+        }
         airlineRepository.deleteById(id);
     }
 }
