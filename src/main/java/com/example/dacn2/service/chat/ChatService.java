@@ -41,6 +41,10 @@ public class ChatService {
                 .receiver(receiver)
                 .content(request.getContent())
                 .isRead(false)
+                .type(request.getType() != null ? request.getType()
+                        : com.example.dacn2.enums.MessageType.TEXT)
+                .fileUrl(request.getFileUrl())
+                .fileName(request.getFileName())
                 .build();
 
         // 3. Lưu xuống DB (Hibernate tự fill timestamp vì logic @CreationTimestamp)
@@ -53,7 +57,12 @@ public class ChatService {
                 .senderName(sender.getEmail()) // Hoặc lấy full name từ UserProfile
                 .receiverId(receiver.getId())
                 .content(savedMessage.getContent())
-                .timestamp(savedMessage.getTimestamp() != null ? savedMessage.getTimestamp().format(FORMATTER) : "")
+                .timestamp(savedMessage.getTimestamp() != null
+                        ? savedMessage.getTimestamp().format(FORMATTER)
+                        : "")
+                .type(savedMessage.getType())
+                .fileUrl(savedMessage.getFileUrl())
+                .fileName(savedMessage.getFileName())
                 .build();
     }
 
@@ -71,6 +80,9 @@ public class ChatService {
                 .receiverId(msg.getReceiver().getId())
                 .content(msg.getContent())
                 .timestamp(msg.getTimestamp().format(FORMATTER))
+                .type(msg.getType())
+                .fileUrl(msg.getFileUrl())
+                .fileName(msg.getFileName())
                 .build())
                 .collect(Collectors.toList());
     }
@@ -78,5 +90,51 @@ public class ChatService {
     @Transactional
     public void markAsRead(Long receiverId, Long senderId) {
         messageRepository.markAsRead(receiverId, senderId);
+    }
+
+    /**
+     * Lấy danh sách các cuộc hội thoại gần đây của Admin
+     * (Group by User và lấy tin nhắn mới nhất)
+     */
+    public List<com.example.dacn2.dto.response.chat.ChatSessionResponse> getRecentConversations(Long adminId) {
+        // 1. Lấy tất cả tin nhắn liên quan đến Admin (Gửi đi hoặc Nhận được)
+        List<Message> allMessages = messageRepository.findAllByAccountId(adminId);
+
+        // 2. Group by "Partner" (Người chat cùng)
+        // Map<PartnerID, LatestMessage>
+        java.util.Map<Long, Message> latestMessages = new java.util.HashMap<>();
+
+        for (Message msg : allMessages) {
+            Account partner;
+            if (msg.getSender().getId().equals(adminId)) {
+                partner = msg.getReceiver();
+            } else {
+                partner = msg.getSender();
+            }
+
+            // Logic: Luôn giữ tin nhắn mới nhất
+            if (!latestMessages.containsKey(partner.getId()) ||
+                    msg.getTimestamp().isAfter(latestMessages.get(partner.getId()).getTimestamp())) {
+                latestMessages.put(partner.getId(), msg);
+            }
+        }
+
+        // 3. Convert sang DTO
+        return latestMessages.values().stream()
+                .sorted((m1, m2) -> m2.getTimestamp().compareTo(m1.getTimestamp())) // Sắp xếp mới nhất lên đầu
+                .map(msg -> {
+                    Account partner = msg.getSender().getId().equals(adminId) ? msg.getReceiver() : msg.getSender();
+
+                    return com.example.dacn2.dto.response.chat.ChatSessionResponse.builder()
+                            .userId(partner.getId())
+                            .email(partner.getEmail())
+                            .fullName(partner.getEmail())
+                            .lastMessage(msg.getType() == com.example.dacn2.enums.MessageType.IMAGE ? "[Hình ảnh]"
+                                    : msg.getContent())
+                            .lastMessageTime(msg.getTimestamp().format(FORMATTER))
+                            .isRead(msg.isRead())
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 }

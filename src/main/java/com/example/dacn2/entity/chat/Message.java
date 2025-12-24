@@ -37,4 +37,14 @@ public class Message {
 
     @Column(name = "is_read", columnDefinition = "boolean default false")
     private boolean isRead = false;
+
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "VARCHAR(20) DEFAULT 'TEXT'")
+    private com.example.dacn2.enums.MessageType type = com.example.dacn2.enums.MessageType.TEXT;
+
+    @Column(name = "file_url", columnDefinition = "TEXT")
+    private String fileUrl;
+
+    @Column(name = "file_name")
+    private String fileName;
 }

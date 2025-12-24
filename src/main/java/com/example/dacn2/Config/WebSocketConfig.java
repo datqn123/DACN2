@@ -1,10 +1,21 @@
 package com.example.dacn2.Config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.messaging.simp.stomp.StompCommand;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+
+import com.example.dacn2.utils.JWTUtils;
 
 /**
  * Cấu hình WebSocket với STOMP protocol
@@ -45,9 +56,54 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // Endpoint /ws để client handshake
         // withSockJS() = fallback cho browser cũ không hỗ trợ WebSocket
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("http://localhost:3000", "http://localhost:4000",
-                        "https://tripgo-qmdo.onrender.com") // Cho phép frontend
+                .setAllowedOriginPatterns("*") // Cho phép mọi nguồn (để test 2 máy LAN)
                 // (React/Next.js)
                 .withSockJS();
+    }
+
+    @Autowired
+    private JWTUtils jwtUtils;
+
+    @Autowired
+    private CustomUserDetailsService customUserDetailsService;
+
+    @Override
+    public void configureClientInboundChannel(
+            ChannelRegistration registration) {
+        registration.interceptors(new ChannelInterceptor() {
+            @Override
+            public Message<?> preSend(Message<?> message, MessageChannel channel) {
+                StompHeaderAccessor accessor = org.springframework.messaging.support.MessageHeaderAccessor
+                        .getAccessor(message, StompHeaderAccessor.class);
+
+                if (StompCommand.CONNECT.equals(accessor.getCommand())) {
+                    String authHeader = accessor.getFirstNativeHeader("Authorization");
+                    System.out.println("WEBSOCKET CONNECT: " + authHeader); // DEBUG
+
+                    if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                        String token = authHeader.substring(7);
+                        try {
+                            jwtUtils.validateJwtToken(token);
+                            String email = jwtUtils.getEmailFromToken(token);
+                            System.out.println("WEBSOCKET AUTH SUCCESS: " + email); // DEBUG
+
+                            UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
+                            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                                    userDetails, null, userDetails.getAuthorities());
+
+                            accessor.setUser(authentication);
+                        } catch (Exception e) {
+                            System.err.println("WEBSOCKET AUTH FAILED: " + e.getMessage()); // DEBUG
+                            e.printStackTrace();
+                            return null; // Reject connection
+                        }
+                    } else {
+                        System.err.println("WEBSOCKET NO TOKEN - REJECTING"); // DEBUG
+                        return null; // REJECT CONNECTION if no token is present
+                    }
+                }
+                return message;
+            }
+        });
     }
 }

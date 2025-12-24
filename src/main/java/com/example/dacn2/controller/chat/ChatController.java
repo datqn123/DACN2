@@ -30,36 +30,74 @@ public class ChatController {
     @Autowired
     private AccountRepository accountRepository;
 
+    @Autowired
+    private com.example.dacn2.service.chat.AssignmentService assignmentService;
+
     @MessageMapping("/chat")
     public void processMessage(@Payload ChatMessageRequest request, Principal principal) {
         try {
+            if (principal == null) {
+                log.error("Principal is null. User not authenticated. Check WebSocket Token.");
+                return;
+            }
             String senderEmail = principal.getName();
-            log.info("Nhận tin nhắn từ: {} gửi tới ID: {}", senderEmail, request.getReceiverId());
 
             Account sender = accountRepository.findByEmail(senderEmail)
                     .orElseThrow(() -> new RuntimeException("Sender not found"));
             Long senderId = sender.getId();
 
+            // Check Role của người gửi
+            boolean isAdmin = sender.getRoles().stream()
+                    .anyMatch(r -> r.getName().equals("ADMIN") || r.getName().equals("STAFF"));
+
+            Long finalReceiverId = null;
+
+            if (isAdmin) {
+                // Nếu là Admin -> Phải gửi đích danh cho User (lấy từ request)
+                if (request.getReceiverId() == null) {
+                    log.warn("Admin {} gửi tin nhắn nhưng không có receiverId", senderEmail);
+                    return;
+                }
+                finalReceiverId = request.getReceiverId();
+            } else {
+                // Nếu là Customer -> Tự động tìm Admin để gán
+                // Gọi thuật toán Auto-Assign
+                Account assignedAdmin = assignmentService.assignUserToAdmin(senderId);
+
+                if (assignedAdmin == null) {
+                    // Trường hợp không có Admin nào online
+                    // Có thể gửi lại một tin nhắn lỗi cho chính User đó
+                    ChatMessageResponse errorMsg = ChatMessageResponse.builder()
+                            .content("Hiện tại không có nhân viên hỗ trợ nào trực tuyến. Vui lòng quay lại sau!")
+                            .senderName("System")
+                            .timestamp(java.time.LocalDateTime.now().toString())
+                            .build();
+
+                    messagingTemplate.convertAndSendToUser(
+                            senderEmail,
+                            "/queue/messages",
+                            errorMsg);
+                    return;
+                }
+                finalReceiverId = assignedAdmin.getId();
+            }
+
+            // Cập nhật lại receiverId chuẩn vào request để lưu DB
+            request.setReceiverId(finalReceiverId);
+
+            log.info("Xử lý tin nhắn: {} -> {}", senderEmail, finalReceiverId);
+
             // 1. Lưu tin nhắn
             ChatMessageResponse response = chatService.saveMessage(senderId, request);
 
             // 2. Gửi tin nhắn cho người nhận (Receiver)
-            // CẦN GỬI THEO EMAIL, vì Principal của Socket là Email
-            Account receiver = accountRepository.findById(request.getReceiverId())
+            Account receiver = accountRepository.findById(finalReceiverId)
                     .orElseThrow(() -> new RuntimeException("Receiver not found"));
 
             messagingTemplate.convertAndSendToUser(
                     receiver.getEmail(),
                     "/queue/messages",
                     response);
-
-            // 3. Gửi lại cho người gửi (để hiển thị real-time trên UI của họ nếu cần, hoặc
-            // họ tự append)
-            // messagingTemplate.convertAndSendToUser(
-            // String.valueOf(senderId),
-            // "/queue/messages",
-            // response
-            // );
 
         } catch (Exception e) {
             log.error("Lỗi gửi tin nhắn: ", e);
@@ -92,5 +130,21 @@ public class ChatController {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         chatService.markAsRead(currentUser.getId(), senderId);
+    }
+
+    /**
+     * API cho Admin: Lấy danh sách các cuộc hội thoại gần đây
+     */
+    @GetMapping("/api/chat/admin/conversations")
+    public List<com.example.dacn2.dto.response.chat.ChatSessionResponse> getAdminConversations() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String currentUserEmail = auth.getName();
+
+        Account currentUser = accountRepository.findByEmail(currentUserEmail)
+                .orElseThrow(() -> new RuntimeException("Current user not found"));
+
+        // TODO: Check Role Admin nếu cần thiết
+
+        return chatService.getRecentConversations(currentUser.getId());
     }
 }

@@ -16,6 +16,11 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
             "ORDER BY m.timestamp ASC")
     List<Message> findConversation(Long userId1, Long userId2);
 
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.transaction.annotation.Transactional
     @Query("UPDATE Message m SET m.isRead = true WHERE m.receiver.id = :receiverId AND m.sender.id = :senderId")
     void markAsRead(Long receiverId, Long senderId);
+
+    @Query("SELECT m FROM Message m WHERE m.sender.id = :userId OR m.receiver.id = :userId")
+    List<Message> findAllByAccountId(Long userId);
 }

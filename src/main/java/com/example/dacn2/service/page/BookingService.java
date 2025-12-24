@@ -35,7 +35,6 @@ import com.example.dacn2.repository.hotel.RoomRepository;
 import com.example.dacn2.repository.tour.TourScheduleRepository;
 import com.example.dacn2.repository.voucher.VoucherRepository;
 import com.example.dacn2.service.EmailService;
-import com.example.dacn2.service.KafkaProducerServicce;
 import com.example.dacn2.service.entity.NotificationService;
 import com.example.dacn2.entity.notification.NotificationType;
 
@@ -131,7 +130,6 @@ public class BookingService {
         // save passenger
         savePassengers(request.getPassengers(), savedBooking);
 
-        // Gửi email xác nhận đặt phòng (async)
         // Gửi email xác nhận đặt phòng (async)
         emailService.sendBookingConfirmationEmail(savedBooking);
 
