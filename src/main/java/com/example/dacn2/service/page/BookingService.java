@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 
 import com.example.dacn2.dto.request.BookingRequest;
 import com.example.dacn2.dto.request.PassengerRequest;
+import com.example.dacn2.dto.request.email.EmailRequest;
+import com.example.dacn2.dto.request.email.TypeEmailEnum;
 import com.example.dacn2.dto.response.BookingResponse;
 import com.example.dacn2.dto.response.VoucherResponse;
 import com.example.dacn2.entity.User.Account;
@@ -33,6 +35,7 @@ import com.example.dacn2.repository.hotel.RoomRepository;
 import com.example.dacn2.repository.tour.TourScheduleRepository;
 import com.example.dacn2.repository.voucher.VoucherRepository;
 import com.example.dacn2.service.EmailService;
+import com.example.dacn2.service.KafkaProducerServicce;
 import com.example.dacn2.service.entity.NotificationService;
 import com.example.dacn2.entity.notification.NotificationType;
 
@@ -129,15 +132,8 @@ public class BookingService {
         savePassengers(request.getPassengers(), savedBooking);
 
         // Gửi email xác nhận đặt phòng (async)
-        // Phải fetch lại với JOIN FETCH để tránh lazy loading exception trong async
-        // thread
-        try {
-            Booking bookingWithDetails = bookingRepository.findByIdWithDetails(savedBooking.getId())
-                    .orElse(savedBooking);
-            emailService.sendBookingConfirmationEmail(bookingWithDetails);
-        } catch (Exception e) {
-            log.error("Failed to send booking confirmation email: {}", e.getMessage());
-        }
+        // Gửi email xác nhận đặt phòng (async)
+        emailService.sendBookingConfirmationEmail(savedBooking);
 
         // 🔔 Gửi notification realtime
         try {
@@ -326,8 +322,41 @@ public class BookingService {
             p.setPassengerType(req.getType()); // ADULT, CHILD
 
             // Parse ngày sinh (xử lý chuỗi rỗng)
-            if (req.getDob() != null && !req.getDob().isEmpty()) {
-                p.setDateOfBirth(LocalDate.parse(req.getDob()));
+            // Parse ngày sinh (xử lý chuỗi rỗng)
+            if (req.getDob() != null && !req.getDob().trim().isEmpty()) {
+                try {
+                    LocalDate dob = null;
+                    String dobStr = req.getDob().trim();
+                    // Try parsing mostly used format first: ISO (yyyy-MM-dd)
+                    try {
+                        dob = LocalDate.parse(dobStr);
+                    } catch (Exception e1) {
+                        try {
+                            // Try dd-MM-yyyy or dd/MM/yyyy
+                            if (dobStr.contains("/")) {
+                                dob = LocalDate.parse(dobStr,
+                                        java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                            } else {
+                                dob = LocalDate.parse(dobStr,
+                                        java.time.format.DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+                            }
+                        } catch (Exception e2) {
+                            throw new RuntimeException("Ngày sinh không đúng định dạng (yyyy-MM-dd hoặc dd/MM/yyyy)");
+                        }
+                    }
+
+                    // Validate year range
+                    if (dob.getYear() < 1900 || dob.getYear() > 2100) {
+                        throw new RuntimeException("Năm sinh không hợp lệ: " + dob.getYear());
+                    }
+                    p.setDateOfBirth(dob);
+
+                } catch (Exception e) {
+                    // Log error but maybe don't stop the whole booking? Or should we?
+                    // Ideally we should validte before saving. For now, rethrow as user friendly
+                    // error.
+                    throw new RuntimeException("Lỗi ngày sinh hành khách " + req.getFullName() + ": " + e.getMessage());
+                }
             }
 
             p.setBooking(booking);
@@ -344,19 +373,17 @@ public class BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng: " + bookingId));
 
+        // Idempotency: Nếu đã thanh toán rồi thì không làm gì cả
+        if (Boolean.TRUE.equals(booking.getIsPaid())) {
+            log.info("⚠️ Đơn hàng {} đã được thanh toán trước đó. Bỏ qua.", bookingId);
+            return;
+        }
+
         booking.setStatus(BookingStatus.CONFIRMED);
         booking.setIsPaid(true);
         bookingRepository.save(booking);
 
-        // Gửi email thanh toán thành công (async)
-        // Phải fetch lại với JOIN FETCH để tránh lazy loading exception
-        try {
-            Booking bookingWithDetails = bookingRepository.findByIdWithDetails(bookingId)
-                    .orElse(booking);
-            emailService.sendPaymentSuccessEmail(bookingWithDetails);
-        } catch (Exception e) {
-            log.error("Failed to send payment success email: {}", e.getMessage());
-        }
+        emailService.sendPaymentSuccessEmail(booking);
 
         // 🔔 Gửi notification realtime
         try {
@@ -400,14 +427,8 @@ public class BookingService {
         }
 
         // Gửi email thông báo hủy (async)
-        // Phải fetch lại với JOIN FETCH để tránh lazy loading exception
-        try {
-            Booking bookingWithDetails = bookingRepository.findByIdWithDetails(bookingId)
-                    .orElse(booking);
-            emailService.sendBookingCancellationEmail(bookingWithDetails);
-        } catch (Exception e) {
-            log.error("Failed to send cancellation email: {}", e.getMessage());
-        }
+        // Gửi email thông báo hủy (async)
+        emailService.sendBookingCancellationEmail(booking);
 
         // 🔔 Gửi notification realtime
         try {

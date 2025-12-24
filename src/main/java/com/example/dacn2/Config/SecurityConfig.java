@@ -35,6 +35,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/test/**").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/api/payment/**").permitAll()
+                        .requestMatchers("/kafka/**").permitAll()
                         // WebSocket endpoint - cho phép handshake
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers(

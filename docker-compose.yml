@@ -13,6 +13,37 @@ services:
     volumes:
       - db_data:/var/lib/mysql # Để dữ liệu không mất khi tắt docker
 
+  # --- Service 3: Zookeeper ---
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    hostname: zookeeper
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  # --- Service 4: Kafka ---
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    hostname: kafka
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+
   # --- Service 2: Spring Boot App ---
   springboot-app:
     build: . # Build từ Dockerfile ở thư mục hiện tại
@@ -21,6 +52,7 @@ services:
       - "8080:8080" # Cổng web
     depends_on:
       - mysqldb # Chờ DB chạy xong mới chạy App
+      - kafka
     environment:
       # CẤU HÌNH QUAN TRỌNG: Ghi đè file properties
       # Lưu ý: 'mysqldb' ở đây chính là tên service ở trên, KHÔNG dùng localhost
@@ -28,6 +60,7 @@ services:
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=1
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update # Tự động tạo bảng
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
 
 volumes:
   db_data:

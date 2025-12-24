@@ -31,7 +31,6 @@ import com.example.dacn2.entity.booking.BookingStatus;
 
 @RestController
 @RequestMapping("/api/payment")
-@PreAuthorize("hasRole('USER')")
 public class PaymentController {
 
     @Autowired
@@ -40,35 +39,40 @@ public class PaymentController {
     @Autowired
     private BookingService bookingService;
 
-    @Value("${app.frontend.url:https://tripgo-frontend.vercel.app}")
+    @Value("${app.frontend.url:http://localhost:8080}")
     private String frontendBaseUrl;
 
     // URL của backend để PayOS callback về
-    @Value("${app.backend.url:https://tripgo-api.onrender.com}")
+    @Value("${app.backend.url:http://localhost:8080}")
     private String backendBaseUrl;
+
+    private static final double price = 2000;
 
     /**
      * Tạo link thanh toán PayOS và trả về QR code + thông tin chuyển khoản
      */
     @PostMapping("/create-payment-link")
+    @PreAuthorize("hasRole('USER')")
     public ApiResponse<PaymentLinkResponse> createPaymentLink(@RequestBody BookingRequest request) {
         // 1. Tạo Booking trong DB trước
         Booking booking = bookingService.createBooking(request);
         long bookingId = booking.getId(); // Dùng ID làm orderCode cho PayOS
 
         // 2. Lấy số tiền từ booking (finalPrice đã tính discount)
-        // TODO: Bỏ hardcode sau khi test xong
-        long amount = 2000; // Test với 2000 đồng
-        // long amount = booking.getFinalPrice() != null
-        // ? booking.getFinalPrice().longValue()
-        // : booking.getTotalPrice().longValue();
+        // double price = booking.getFinalPrice() != null ? booking.getFinalPrice() :
+        // booking.getTotalPrice();
+        long amount = (long) price;
+
+        if (amount <= 0) {
+            throw new RuntimeException("Số tiền thanh toán không hợp lệ: " + amount);
+        }
 
         try {
             // 3. Tạo request gửi sang PayOS
             CreatePaymentLinkRequest paymentRequest = CreatePaymentLinkRequest.builder()
                     .orderCode(bookingId)
                     .amount(amount)
-                    .description("DH" + bookingId)
+                    .description("DH " + bookingId)
                     .returnUrl(backendBaseUrl + "/api/payment/success")
                     .cancelUrl(backendBaseUrl + "/api/payment/cancel")
                     .build();
@@ -80,7 +84,7 @@ public class PaymentController {
             PaymentLinkResponse paymentInfo = PaymentLinkResponse.builder()
                     .orderCode(bookingId)
                     .amount(amount)
-                    .description("DH" + bookingId)
+                    .description("DH " + bookingId)
                     .checkoutUrl(response.getCheckoutUrl())
                     .qrCode(response.getQrCode())
                     .accountNumber(response.getAccountNumber())
@@ -111,10 +115,21 @@ public class PaymentController {
             @RequestParam(required = false) Boolean cancel,
             HttpServletResponse response) throws Exception {
 
-        // Cập nhật booking trong DB nếu status = PAID
-        if ("PAID".equals(status)) {
-            bookingService.confirmPayment(orderCode);
-            System.out.println("✅ Thanh toán thành công! Mã đơn: " + orderCode);
+        try {
+            // Xác thực lại với PayOS để đảm bảo an toàn
+            var paymentLinkData = payOS.paymentRequests().get(orderCode);
+
+            if ("PAID".equals(String.valueOf(paymentLinkData.getStatus()))) {
+                bookingService.confirmPayment(orderCode);
+                System.out.println("✅ Thanh toán thành công (Verified)! Mã đơn: " + orderCode);
+            } else {
+                System.out
+                        .println("⚠️ Thanh toán chưa hoàn tất hoặc lỗi. Status PayOS: " + paymentLinkData.getStatus());
+                status = "FAILED";
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Lỗi verify payment: " + e.getMessage());
+            status = "ERROR";
         }
 
         // Redirect về frontend với thông tin thanh toán
