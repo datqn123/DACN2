@@ -2,6 +2,7 @@ package com.example.dacn2.controller.chat;
 
 import com.example.dacn2.dto.request.chat.ChatMessageRequest;
 import com.example.dacn2.dto.response.chat.ChatMessageResponse;
+import com.example.dacn2.dto.response.chat.ChatSessionResponse;
 import com.example.dacn2.entity.User.Account;
 import com.example.dacn2.repository.AccountRepository;
 import com.example.dacn2.service.chat.ChatService;
@@ -46,7 +47,6 @@ public class ChatController {
                     .orElseThrow(() -> new RuntimeException("Sender not found"));
             Long senderId = sender.getId();
 
-            // Check Role của người gửi
             boolean isAdmin = sender.getRoles().stream()
                     .anyMatch(r -> r.getName().equals("ADMIN") || r.getName().equals("STAFF"));
 
@@ -136,7 +136,7 @@ public class ChatController {
      * API cho Admin: Lấy danh sách các cuộc hội thoại gần đây
      */
     @GetMapping("/api/chat/admin/conversations")
-    public List<com.example.dacn2.dto.response.chat.ChatSessionResponse> getAdminConversations() {
+    public List<ChatSessionResponse> getAdminConversations() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String currentUserEmail = auth.getName();
 

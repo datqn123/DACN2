@@ -40,11 +40,6 @@ public class WebSocketEventListener {
                 // Kiểm tra xem có phải ADMIN hoặc STAFF không
                 boolean isAdmin = user.getRoles().stream()
                         .anyMatch(role -> role.getName().equals("ADMIN") || role.getName().equals("STAFF")); // Check
-                                                                                                             // both
-                                                                                                             // cases
-                                                                                                             // just to
-                                                                                                             // be safe
-
                 if (isAdmin) {
                     presenceService.addAdmin(user.getId());
                     log.info("User {} identified as ADMIN/STAFF. Added to PresenceService.", email);
