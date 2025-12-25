@@ -189,6 +189,30 @@ public class PaymentController {
         return ResponseEntity.ok("Webhook endpoint is active. Use POST for webhooks.");
     }
 
+    @GetMapping("/debug-config")
+    public ResponseEntity<String> debugConfig() {
+        try {
+            java.lang.reflect.Field clientIdField = vn.payos.PayOS.class.getDeclaredField("clientId");
+            clientIdField.setAccessible(true);
+            String clientId = (String) clientIdField.get(payOS);
+
+            java.lang.reflect.Field apiKeyField = vn.payos.PayOS.class.getDeclaredField("apiKey");
+            apiKeyField.setAccessible(true);
+            String apiKey = (String) apiKeyField.get(payOS);
+
+            java.lang.reflect.Field checksumKeyField = vn.payos.PayOS.class.getDeclaredField("checksumKey");
+            checksumKeyField.setAccessible(true);
+            String checksumKey = (String) checksumKeyField.get(payOS);
+
+            return ResponseEntity.ok(
+                    "Client ID: " + (clientId != null ? clientId.substring(0, 5) + "***" : "null") + "\n" +
+                            "API Key: " + (apiKey != null ? apiKey.substring(0, 5) + "***" : "null") + "\n" +
+                            "Checksum Key: " + (checksumKey != null ? checksumKey.substring(0, 5) + "***" : "null"));
+        } catch (Exception e) {
+            return ResponseEntity.ok("Error reading config: " + e.getMessage());
+        }
+    }
+
     @GetMapping("/check-status/{orderCode}")
     public ApiResponse<String> checkPaymentStatus(@PathVariable Long orderCode) {
         try {
