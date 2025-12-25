@@ -219,7 +219,9 @@ public class PaymentController {
                         "Checksum Key: "
                         + (debugChecksumKey != null && debugChecksumKey.length() > 5
                                 ? debugChecksumKey.substring(0, 5) + "***"
-                                : debugChecksumKey));
+                                : debugChecksumKey)
+                        + "\n" +
+                        "Backend URL: " + backendBaseUrl);
     }
 
     @GetMapping("/check-status/{orderCode}")
