@@ -43,7 +43,7 @@ public class PaymentController {
     private String frontendBaseUrl;
 
     // URL của backend để PayOS callback về
-    @Value("${app.backend.url:https://tripgo-qmdo.onrender.com/}")
+    @Value("${app.backend.url:https://tripgo-qmdo.onrender.com}")
     private String backendBaseUrl;
 
     private static final double price = 2000;
