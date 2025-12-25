@@ -176,19 +176,26 @@ public class PaymentController {
      */
     @PostMapping({ "", "/payos-webhook" })
     public ResponseEntity<String> handlePayOSWebhook(@RequestBody Webhook webhookBody) {
+        System.out.println("🔔 WEBHOOK RECEIVED from PayOS");
+        System.out.println("Data: " + webhookBody.getData());
+        System.out.println("Signature: " + webhookBody.getSignature());
+
         try {
             // Xác thực webhook
             WebhookData data = payOS.webhooks().verify(webhookBody);
             long bookingId = data.getOrderCode();
 
+            System.out.println("✅ Signature Verified! Processing Booking ID: " + bookingId);
+
             // Cập nhật booking status = CONFIRMED, isPaid = true
             bookingService.confirmPayment(bookingId);
 
-            System.out.println("✅ Webhook: Đã nhận tiền đơn hàng: " + bookingId);
+            System.out.println("✅ Payment Confirmed Successfully for Booking ID: " + bookingId);
 
             return ResponseEntity.ok("Webhook received");
         } catch (Exception e) {
-            System.err.println("❌ Webhook error: " + e.getMessage());
+            System.err.println("❌ WEBHOOK ERROR: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.badRequest().body("Invalid Webhook: " + e.getMessage());
         }
     }
