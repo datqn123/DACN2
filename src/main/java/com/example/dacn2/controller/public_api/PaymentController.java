@@ -39,7 +39,7 @@ public class PaymentController {
     @Autowired
     private BookingService bookingService;
 
-    @Value("${app.frontend.url:http://localhost:8080}")
+    @Value("${app.frontend.url:https://tripgo-qmdo.onrender.com}")
     private String frontendBaseUrl;
 
     // URL của backend để PayOS callback về
