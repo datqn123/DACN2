@@ -46,6 +46,15 @@ public class PaymentController {
     @Value("${app.backend.url:https://tripgo-qmdo.onrender.com}")
     private String backendBaseUrl;
 
+    @Value("${payos.client-id}")
+    private String debugClientId;
+
+    @Value("${payos.api-key}")
+    private String debugApiKey;
+
+    @Value("${payos.checksum-key}")
+    private String debugChecksumKey;
+
     private static final double price = 2000;
 
     /**
@@ -191,26 +200,19 @@ public class PaymentController {
 
     @GetMapping("/debug-config")
     public ResponseEntity<String> debugConfig() {
-        try {
-            java.lang.reflect.Field clientIdField = vn.payos.PayOS.class.getDeclaredField("clientId");
-            clientIdField.setAccessible(true);
-            String clientId = (String) clientIdField.get(payOS);
-
-            java.lang.reflect.Field apiKeyField = vn.payos.PayOS.class.getDeclaredField("apiKey");
-            apiKeyField.setAccessible(true);
-            String apiKey = (String) apiKeyField.get(payOS);
-
-            java.lang.reflect.Field checksumKeyField = vn.payos.PayOS.class.getDeclaredField("checksumKey");
-            checksumKeyField.setAccessible(true);
-            String checksumKey = (String) checksumKeyField.get(payOS);
-
-            return ResponseEntity.ok(
-                    "Client ID: " + (clientId != null ? clientId.substring(0, 5) + "***" : "null") + "\n" +
-                            "API Key: " + (apiKey != null ? apiKey.substring(0, 5) + "***" : "null") + "\n" +
-                            "Checksum Key: " + (checksumKey != null ? checksumKey.substring(0, 5) + "***" : "null"));
-        } catch (Exception e) {
-            return ResponseEntity.ok("Error reading config: " + e.getMessage());
-        }
+        return ResponseEntity.ok(
+                "Client ID: "
+                        + (debugClientId != null && debugClientId.length() > 5 ? debugClientId.substring(0, 5) + "***"
+                                : debugClientId)
+                        + "\n" +
+                        "API Key: "
+                        + (debugApiKey != null && debugApiKey.length() > 5 ? debugApiKey.substring(0, 5) + "***"
+                                : debugApiKey)
+                        + "\n" +
+                        "Checksum Key: "
+                        + (debugChecksumKey != null && debugChecksumKey.length() > 5
+                                ? debugChecksumKey.substring(0, 5) + "***"
+                                : debugChecksumKey));
     }
 
     @GetMapping("/check-status/{orderCode}")
