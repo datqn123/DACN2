@@ -165,7 +165,7 @@ public class PaymentController {
     /**
      * Webhook nhận callback từ PayOS khi thanh toán thành công (Server-to-Server)
      */
-    @PostMapping("/payos-webhook")
+    @PostMapping({ "", "/payos-webhook" })
     public ResponseEntity<String> handlePayOSWebhook(@RequestBody Webhook webhookBody) {
         try {
             // Xác thực webhook
@@ -182,6 +182,11 @@ public class PaymentController {
             System.err.println("❌ Webhook error: " + e.getMessage());
             return ResponseEntity.badRequest().body("Invalid Webhook: " + e.getMessage());
         }
+    }
+
+    @GetMapping({ "", "/payos-webhook" })
+    public ResponseEntity<String> checkWebhookHealth() {
+        return ResponseEntity.ok("Webhook endpoint is active. Use POST for webhooks.");
     }
 
     @GetMapping("/check-status/{orderCode}")
