@@ -26,6 +26,7 @@ public class CorsConfig {
         corsConfiguration.addAllowedOriginPattern("https://*.vercel.app");
         corsConfiguration.addAllowedOriginPattern("https://*.netlify.app");
         corsConfiguration.addAllowedOriginPattern("https://*.onrender.com");
+        corsConfiguration.addAllowedOriginPattern("https://trip-go-eight.vercel.app/");
 
         // 2. Cho phép tất cả các method (GET, POST, PUT, DELETE, OPTIONS...)
         corsConfiguration.addAllowedMethod("*");

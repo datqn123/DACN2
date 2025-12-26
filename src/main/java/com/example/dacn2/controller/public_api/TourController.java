@@ -53,7 +53,7 @@ public class TourController {
                                 .build();
         }
 
-        @GetMapping("search-suggest")
+        @GetMapping("/search-suggest")
         public ApiResponse<List<TourDocument>> searchSuggest(@RequestParam(required = false) String search) {
                 return ApiResponse.<List<TourDocument>>builder()
                                 .result(tourService.searchToursWithElasticsearch(search))
