@@ -24,10 +24,6 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
-    /**
-     * Lưu notification từ client (Khi user bấm Đã xem)
-     * POST /api/notifications
-     */
     @PostMapping
     @Operation(summary = "Lưu thông báo từ client")
     public ResponseEntity<NotificationResponse> create(
@@ -42,30 +38,18 @@ public class NotificationController {
         return ResponseEntity.ok(NotificationResponse.fromEntity(notification));
     }
 
-    /**
-     * Lấy tất cả notification của user
-     * GET /api/notifications
-     */
     @GetMapping
     @Operation(summary = "Lấy tất cả thông báo của user đang đăng nhập")
     public ResponseEntity<List<NotificationResponse>> getAllNotifications() {
         return ResponseEntity.ok(notificationService.getMyNotifications());
     }
 
-    /**
-     * Lấy 10 notification mới nhất (cho dropdown header)
-     * GET /api/notifications/recent
-     */
     @GetMapping("/recent")
     @Operation(summary = "Lấy 10 thông báo mới nhất")
     public ResponseEntity<List<NotificationResponse>> getRecentNotifications() {
         return ResponseEntity.ok(notificationService.getRecentNotifications());
     }
 
-    /**
-     * Đếm số notification chưa đọc (hiển thị badge)
-     * GET /api/notifications/unread-count
-     */
     @GetMapping("/unread-count")
     @Operation(summary = "Đếm số thông báo chưa đọc")
     public ResponseEntity<Map<String, Long>> getUnreadCount() {
@@ -74,10 +58,6 @@ public class NotificationController {
         return ResponseEntity.ok(result);
     }
 
-    /**
-     * Đánh dấu 1 notification đã đọc
-     * PUT /api/notifications/{id}/read
-     */
     @PutMapping("/{id}/read")
     @Operation(summary = "Đánh dấu 1 thông báo đã đọc")
     public ResponseEntity<Map<String, String>> markAsRead(@PathVariable Long id) {
@@ -88,10 +68,6 @@ public class NotificationController {
         return ResponseEntity.ok(result);
     }
 
-    /**
-     * Đánh dấu tất cả đã đọc
-     * PUT /api/notifications/read-all
-     */
     @PutMapping("/read-all")
     @Operation(summary = "Đánh dấu tất cả thông báo đã đọc")
     public ResponseEntity<Map<String, String>> markAllAsRead() {

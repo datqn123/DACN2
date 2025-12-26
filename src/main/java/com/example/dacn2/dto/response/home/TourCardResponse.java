@@ -1,12 +1,14 @@
 package com.example.dacn2.dto.response.home;
 
+import java.io.Serializable;
+
 import lombok.*;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TourCardResponse {
+public class TourCardResponse implements Serializable {
 
     private Long id;
 

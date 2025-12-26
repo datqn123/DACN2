@@ -15,6 +15,7 @@ import com.example.dacn2.repository.tour.TourRepository;
 import com.example.dacn2.service.entity.SearchHistoryService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -55,14 +56,13 @@ public class SearchHotelService {
                 .orElse(null);
     }
 
-    /**
-     * Lấy 10 địa điểm phổ biến nhất
-     */
+    @Cacheable(value = "topDestinations", key = "#root.methodName")
     public List<LocationSearchResult> findTopDestinations() {
         Pageable top10 = PageRequest.of(0, 10);
         return locationRepository.findTopDestinations(top10);
     }
 
+    @Cacheable(value = "searchLocationDropdown", key = "#keyword")
     public List<LocationSearchResult> searchLocationDropdown(String keyword) {
         Pageable top10 = PageRequest.of(0, 10);
         if (keyword == null || keyword.trim().isEmpty()) {

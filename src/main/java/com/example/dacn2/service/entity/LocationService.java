@@ -5,6 +5,8 @@ import com.example.dacn2.dto.response.DropdownLocationResponse;
 import com.example.dacn2.entity.Location;
 import com.example.dacn2.repository.location.LocationInterfaceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -31,6 +33,7 @@ public class LocationService {
 
     // 3. Tạo mới
     @Transactional
+    @CacheEvict(value = "dropdownLocations", allEntries = true)
     public Location create(LocationRequest request) {
         // check exist
         if (locationRepository.existsByName(request.getName())) {
@@ -49,6 +52,7 @@ public class LocationService {
 
     // 4. Cập nhật
     @Transactional
+    @CacheEvict(value = "dropdownLocations", allEntries = true)
     public Location update(Long id, LocationRequest request) {
         Location location = getById(id);
 
@@ -64,6 +68,7 @@ public class LocationService {
 
     // 5. Xóa
     @Transactional
+    @CacheEvict(value = "dropdownLocations", allEntries = true)
     public void delete(Long id) {
         if (!locationRepository.existsById(id)) {
             throw new RuntimeException("Không tìm thấy địa điểm để xóa");
@@ -71,10 +76,12 @@ public class LocationService {
         locationRepository.deleteById(id);
     }
 
+    @Cacheable(value = "childLocationByParentSlug", key = "#parent_slug")
     public List<Location> getChildLocationByParentSlug(String parent_slug) {
         return locationRepository.findChildLocationByParentSlug(parent_slug);
     }
 
+    @Cacheable(value = "countryToHotelPage", key = "#root.methodName")
     public List<Location> getCountryToHotelPage() {
         return locationRepository.getCountryToHotelPage();
     }
@@ -84,11 +91,12 @@ public class LocationService {
         return locationRepository.getFeaturedLocationsToHotelPage(pageable);
     }
 
+    @Cacheable(value = "dropdownLocations", key = "#root.methodName")
     public List<DropdownLocationResponse> getDropdownLocations() {
         return locationRepository.getDropdownLocations();
     }
 
-    // lấy các nội địa tỏng vn
+    @Cacheable(value = "vnLocation", key = "#root.methodName")
     public List<Location> getVnLocation() {
         return locationRepository.getVnLocation();
     }

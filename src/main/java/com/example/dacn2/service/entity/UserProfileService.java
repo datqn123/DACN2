@@ -7,6 +7,8 @@ import com.example.dacn2.entity.User.UserProfile;
 import com.example.dacn2.repository.AccountRepository;
 import com.example.dacn2.repository.UserProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,17 +22,11 @@ public class UserProfileService {
     @Autowired
     private UserProfileRepository userProfileRepository;
 
-    /**
-     * Lấy thông tin profile của user đang đăng nhập
-     */
     public UserProfileResponse getMyProfile() {
         Account user = getCurrentUser();
         return UserProfileResponse.fromEntity(user);
     }
 
-    /**
-     * Cập nhật thông tin profile của user đang đăng nhập
-     */
     @Transactional
     public UserProfileResponse updateMyProfile(UpdateProfileRequest request) {
         Account user = getCurrentUser();
@@ -70,9 +66,6 @@ public class UserProfileService {
         return UserProfileResponse.fromEntity(user);
     }
 
-    /**
-     * Lấy user đang đăng nhập từ SecurityContext
-     */
     private Account getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return accountRepository.findByEmail(email)

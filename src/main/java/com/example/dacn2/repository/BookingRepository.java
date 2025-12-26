@@ -25,7 +25,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                         "AND b.checkOutDate > :checkInDate")
         Long countBookedRooms(Long roomId, LocalDateTime checkInDate, LocalDateTime checkOutDate);
 
-        // đếm số phòng đang có sẵn real-time
         @Query("SELECT COALESCE(SUM(r.quantity), 0) - COALESCE(COUNT(b), 0) FROM Room r " +
                         "LEFT JOIN Booking b ON b.room.id = r.id " +
                         "AND b.status != 'CANCELLED' " +
@@ -34,7 +33,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                         "WHERE r.hotel.id = :hotelId AND r.isAvailable = true")
         Long countAvailableRoomsForHotel(Long hotelId, LocalDateTime checkInDate, LocalDateTime checkOutDate);
 
-        // Lấy danh sách hotelId có phòng còn trống trong khoảng ngày
         @Query("SELECT DISTINCT r.hotel.id FROM Room r " +
                         "WHERE r.isAvailable = true " +
                         "AND r.quantity > (SELECT COUNT(b) FROM Booking b " +
@@ -44,7 +42,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                         "   AND b.checkOutDate > :checkInDate)")
         List<Long> findHotelIdsWithAvailableRooms(LocalDateTime checkInDate, LocalDateTime checkOutDate);
 
-        // Kiểm tra user đã từng đặt phòng ở hotel này và đã thanh toán chưa
         @Query("SELECT COUNT(b) > 0 FROM Booking b " +
                         "WHERE b.user.id = :userId " +
                         "AND b.room.hotel.id = :hotelId " +
@@ -52,7 +49,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                         "AND b.isPaid = true")
         boolean hasUserBookedHotel(Long userId, Long hotelId);
 
-        // Fetch booking với tất cả relationships cần thiết cho email
         @Query("SELECT b FROM Booking b " +
                         "LEFT JOIN FETCH b.room r " +
                         "LEFT JOIN FETCH r.hotel h " +
@@ -64,11 +60,10 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                         "WHERE b.id = :bookingId")
         Optional<Booking> findByIdWithDetails(Long bookingId);
 
-        // Đếm tổng booking
         @Query("SELECT COUNT(b) FROM Booking b")
         Long countTotalBooking();
 
-        // đếm doanh thu
         @Query("SELECT SUM(b.totalPrice) FROM Booking b where b.status = 'CONFIRMED'")
         Double countTotalRevenue();
+
 }

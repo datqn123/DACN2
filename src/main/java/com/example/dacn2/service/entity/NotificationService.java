@@ -16,12 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Service xử lý logic Notification
- * - Tạo và lưu notification vào DB
- * - Gửi realtime qua WebSocket
- * - Đánh dấu đã đọc
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -30,21 +24,10 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final AccountRepository accountRepository;
 
-    // SimpMessagingTemplate = công cụ để gửi message qua WebSocket
     private final SimpMessagingTemplate messagingTemplate;
 
-    /**
-     * Gửi notification đến user (lưu DB + gửi realtime)
-     * 
-     * @param userId  ID người nhận
-     * @param title   Tiêu đề (VD: "Đặt phòng thành công!")
-     * @param message Nội dung chi tiết
-     * @param type    Loại notification
-     * @param link    Link điều hướng khi click (có thể null)
-     */
     public void sendNotification(Long userId, String title, String message,
             NotificationType type, String link) {
-        // 1. Tìm user
         Account user = accountRepository.findById(userId)
                 .orElse(null);
 
@@ -53,7 +36,6 @@ public class NotificationService {
             return;
         }
 
-        // 2. Tạo và lưu notification vào DB
         Notification notification = Notification.builder()
                 .user(user)
                 .title(title)
@@ -66,38 +48,25 @@ public class NotificationService {
         notification = notificationRepository.save(notification);
         log.info("📬 Saved notification #{} for user {}", notification.getId(), userId);
 
-        // 3. Gửi realtime qua WebSocket
-        // Destination: /user/{userId}/queue/notifications
         NotificationResponse response = NotificationResponse.fromEntity(notification);
         messagingTemplate.convertAndSendToUser(
-                user.getEmail(), // User ID
-                "/queue/notifications", // Destination (Spring tự thêm /user/{userId} phía trước)
-                response // Payload
-        );
-        log.info("🔔 Sent realtime notification to user {}", userId);
+                user.getEmail(),
+                "/queue/notifications",
+                response);
     }
 
-    /**
-     * Gửi notification đến TẤT CẢ user (Broadcast)
-     * Chỉ gửi qua WebSocket, không lưu DB cho từng user (để tránh quá tải)
-     */
     public void sendPublicNotification(String title, String message, String link) {
         NotificationResponse response = NotificationResponse.builder()
                 .title(title)
                 .message(message)
-                .type(NotificationType.SYSTEM) // Mặc định là System
+                .type(NotificationType.SYSTEM)
                 .link(link)
                 .isRead(false)
                 .build();
 
-        // Gửi đến topic chung
         messagingTemplate.convertAndSend("/topic/public/notifications", response);
-        log.info("📢 Sent public notification: {}", title);
     }
 
-    /**
-     * Lấy danh sách notification của user đang đăng nhập
-     */
     public List<NotificationResponse> getMyNotifications() {
         Long userId = getCurrentUserId();
         return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId)
@@ -106,9 +75,6 @@ public class NotificationService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Lấy top 10 notification mới nhất (cho dropdown)
-     */
     public List<NotificationResponse> getRecentNotifications() {
         Long userId = getCurrentUserId();
         return notificationRepository.findTop10ByUserIdOrderByCreatedAtDesc(userId)
@@ -117,17 +83,11 @@ public class NotificationService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Đếm số notification chưa đọc
-     */
     public Long getUnreadCount() {
         Long userId = getCurrentUserId();
         return notificationRepository.countByUserIdAndIsReadFalse(userId);
     }
 
-    /**
-     * Đánh dấu 1 notification đã đọc
-     */
     @Transactional
     public void markAsRead(Long notificationId) {
         Notification notification = notificationRepository.findById(notificationId)
@@ -137,9 +97,6 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
-    /**
-     * Đánh dấu tất cả đã đọc
-     */
     @Transactional
     public void markAllAsRead() {
         Long userId = getCurrentUserId();
@@ -159,15 +116,12 @@ public class NotificationService {
                 .message(message)
                 .type(NotificationType.SYSTEM)
                 .link(link)
-                .isRead(Boolean.TRUE.equals(isRead)) // Sử dụng giá trị gửi lên
+                .isRead(Boolean.TRUE.equals(isRead))
                 .build();
 
         return notificationRepository.save(notification);
     }
 
-    /**
-     * Lấy userId từ Security Context
-     */
     private Long getCurrentUserId() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Account user = accountRepository.findByEmail(email)

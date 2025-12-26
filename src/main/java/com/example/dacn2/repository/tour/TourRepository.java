@@ -1,5 +1,6 @@
 package com.example.dacn2.repository.tour;
 
+import com.example.dacn2.dto.response.home.TourCardResponse;
 import com.example.dacn2.entity.tour.Tour;
 
 import java.util.List;
@@ -30,5 +31,5 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
             "t.startLocation.name, t.destination.name, " +
             "t.thumbnail, t.price, t.transportation) " +
             "FROM Tour t ORDER BY RAND()")
-    List<com.example.dacn2.dto.response.home.TourCardResponse> findFeaturedTourCards(Pageable pageable);
+    List<TourCardResponse> findFeaturedTourCards(Pageable pageable);
 }

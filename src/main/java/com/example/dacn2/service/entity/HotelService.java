@@ -16,6 +16,7 @@ import com.example.dacn2.service.user_service.FileUploadService;
 
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -118,6 +119,7 @@ public class HotelService {
     }
 
     // lấy hotel theo location
+    @Cacheable(value = "hotelByLocation", key = "#locationId")
     public List<HotelCardResponse> getHotelByLocation(Long locationId) {
         return hotelRepository.findByLocationId(locationId);
     }

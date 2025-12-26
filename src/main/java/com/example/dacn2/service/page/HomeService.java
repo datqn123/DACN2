@@ -14,6 +14,7 @@ import com.example.dacn2.repository.location.LocationInterfaceRepository;
 import com.example.dacn2.repository.tour.TourRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -38,10 +39,12 @@ public class HomeService {
     /**
      * Lấy địa điểm nổi bật - Sử dụng DTO Projection
      */
+    @Cacheable(value = "featuredLocations", key = "#root.methodName")
     public List<LocationCardResponse> getFeaturedLocations() {
         return locationRepository.findFeaturedLocationCards();
     }
 
+    @Cacheable(value = "featuredFlights", key = "#root.methodName")
     public List<FlightCardResponse> getFeaturedFlights() {
         Pageable top5Flights = PageRequest.of(0, 5);
         List<Flight> flights = flightRepository.findTopDeals(top5Flights);
@@ -52,6 +55,7 @@ public class HomeService {
                 .collect(Collectors.toList());
     }
 
+    @Cacheable(value = "featuredHotels", key = "#root.methodName")
     public List<HotelCardResponse> getFeaturedHotels() {
         Pageable top5Hotels = PageRequest.of(0, 10);
         List<Hotel> hotels = hotelRepository.findFeaturedHotels(top5Hotels);
@@ -61,10 +65,9 @@ public class HomeService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Lấy tour nổi bật - Sử dụng DTO Projection
-     */
+    @Cacheable(value = "featuredTours", key = "#root.methodName")
     public List<TourCardResponse> getFeaturedTours() {
+        System.out.println("======> QUÉT DB: Đang lấy dữ liệu từ Database (Chưa có Cache) <======");
         Pageable top5Tours = PageRequest.of(0, 10);
         return tourRepository.findFeaturedTourCards(top5Tours);
     }

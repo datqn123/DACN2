@@ -9,6 +9,7 @@ import com.example.dacn2.repository.flight.*;
 import com.example.dacn2.service.user_service.FileUploadService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -88,6 +89,7 @@ public class FlightService {
     }
 
     // Lấy danh sách FlightCardResponse cho hiển thị
+    @Cacheable(value = "flightCards_page", key = "#limit")
     public List<FligthCardResponse> getFlightCardsForDisplay(int limit) {
         List<Flight> flights = getFlightsForCard(limit);
         return flights.stream()

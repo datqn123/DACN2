@@ -10,6 +10,8 @@ import com.example.dacn2.repository.hotel.HotelRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -82,12 +84,7 @@ public class FavoriteHotelService {
         return favoriteHotelRepository.existsByAccountIdAndHotelId(accountId, hotelId);
     }
 
-    /**
-     * Lấy danh sách yêu thích - Safe version
-     * Đã loại bỏ duplicate hotels (chỉ lấy favorite gần nhất cho mỗi hotel)
-     * 
-     * @return list rỗng nếu chưa đăng nhập
-     */
+    @Cacheable(value = "favoriteHotels", key = "#accountId")
     public List<HotelCardResponse> getFavoriteHotelsSafe(Long accountId) {
         if (accountId == null) {
             return Collections.emptyList();

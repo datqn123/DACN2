@@ -1,5 +1,7 @@
 package com.example.dacn2.controller.public_api;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,6 +18,7 @@ import com.example.dacn2.dto.request.tour.TourFilterRequest;
 import com.example.dacn2.dto.response.home.TourCardResponse;
 import com.example.dacn2.dto.response.home.TourSearchResponse;
 import com.example.dacn2.entity.tour.Tour;
+import com.example.dacn2.entity.tour.TourDocument;
 import com.example.dacn2.service.entity.TourService;
 
 @RestController
@@ -47,6 +50,14 @@ public class TourController {
                 return ApiResponse.<Page<TourCardResponse>>builder()
                                 .result(tourService.getAllPaged(pageable))
                                 .message("Lấy danh sách tour thành công")
+                                .build();
+        }
+
+        @GetMapping("search-suggest")
+        public ApiResponse<List<TourDocument>> searchSuggest(@RequestParam(required = false) String search) {
+                return ApiResponse.<List<TourDocument>>builder()
+                                .result(tourService.searchToursWithElasticsearch(search))
+                                .message("Tìm kiếm gợi ý thành công")
                                 .build();
         }
 

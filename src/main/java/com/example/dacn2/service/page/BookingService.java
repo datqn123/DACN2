@@ -5,9 +5,11 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -63,6 +65,8 @@ public class BookingService {
     private EmailService emailService;
     @Autowired
     private NotificationService notificationService;
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
 
     // Giá cố định cho dịch vụ bổ sung (có thể đưa vào config hoặc DB sau)
     private static final double TRAVEL_INSURANCE_PRICE = 99000; // VNĐ/khách
@@ -126,6 +130,8 @@ public class BookingService {
 
         // tạo booking để lấy id cho thanh toán
         Booking savedBooking = bookingRepository.save(booking);
+        String key = "booking_timeout:" + savedBooking.getId();
+        redisTemplate.opsForValue().set(key, "check_payment", 10, TimeUnit.SECONDS);
 
         // save passenger
         savePassengers(request.getPassengers(), savedBooking);
@@ -363,8 +369,6 @@ public class BookingService {
         passengerRepository.saveAll(passengers);
     }
 
-    // ========== PAYMENT INTEGRATION ==========
-
     // xác nhận thanh toán
     @Transactional
     public void confirmPayment(Long bookingId) {
@@ -398,9 +402,6 @@ public class BookingService {
         log.info("✅ Đã xác nhận thanh toán booking ID: {}", bookingId);
     }
 
-    /**
-     * Hủy đơn hàng
-     */
     @Transactional
     public void cancelBooking(Long bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
@@ -424,11 +425,8 @@ public class BookingService {
             tourScheduleRepository.save(schedule);
         }
 
-        // Gửi email thông báo hủy (async)
-        // Gửi email thông báo hủy (async)
         emailService.sendBookingCancellationEmail(booking);
 
-        // 🔔 Gửi notification realtime
         try {
             notificationService.sendNotification(
                     booking.getUser().getId(),
@@ -441,6 +439,43 @@ public class BookingService {
         }
 
         log.info("❌ Đã hủy đơn hàng booking ID: {}", bookingId);
+    }
+
+    @Transactional
+    public void cancelUnpaidBooking(Long bookingId) {
+        System.out.println("Hết giờ đơn hàng bị huỷ");
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng: " + bookingId));
+        if (booking.getStatus() == BookingStatus.CANCELLED) {
+            throw new RuntimeException("Đơn hàng này đã được hủy trước đó!");
+        }
+
+        booking.setStatus(BookingStatus.CANCELLED);
+        bookingRepository.save(booking);
+
+        // Hoàn lại số lượng nếu là vé máy bay hoặc tour
+        if (booking.getType() == BookingType.FLIGHT && booking.getFlightSeat() != null) {
+            FlightSeat seat = booking.getFlightSeat();
+            seat.setAvailableQuantity(seat.getAvailableQuantity() + booking.getQuantity());
+            flightSeatRepository.save(seat);
+        } else if (booking.getType() == BookingType.TOUR && booking.getTourSchedule() != null) {
+            TourSchedule schedule = booking.getTourSchedule();
+            schedule.setAvailableSeats(schedule.getAvailableSeats() + booking.getQuantity());
+            tourScheduleRepository.save(schedule);
+        }
+
+        emailService.sendBookingCancellationEmail(booking);
+
+        try {
+            notificationService.sendNotification(
+                    booking.getUser().getId(),
+                    "Đơn hàng đã bị hủy",
+                    "Đơn hàng " + booking.getBookingCode() + " đã được hủy thành công.",
+                    NotificationType.BOOKING_CANCELLED,
+                    "/my-bookings");
+        } catch (Exception e) {
+            log.error("Failed to send cancellation notification: {}", e.getMessage());
+        }
     }
 
     /**

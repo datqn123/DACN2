@@ -6,10 +6,15 @@ import com.example.dacn2.dto.response.home.TourSearchResponse;
 import com.example.dacn2.entity.*;
 import com.example.dacn2.entity.tour.*;
 import com.example.dacn2.repository.location.LocationInterfaceRepository;
+import com.example.dacn2.repository.tour.TourESRepository;
 import com.example.dacn2.repository.tour.TourRepository;
 import com.example.dacn2.repository.tour.TourSpecification;
 import com.example.dacn2.service.user_service.FileUploadService;
+
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,6 +29,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.elasticsearch.client.elc.NativeQuery;
+import org.springframework.data.elasticsearch.client.elc.NativeQueryBuilder;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.SearchHit;
+import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +47,10 @@ public class TourService {
     private LocationInterfaceRepository locationRepository;
     @Autowired
     private FileUploadService fileUploadService;
+    @Autowired
+    private ElasticsearchOperations elasticsearchOperations;
+    @Autowired
+    private TourESRepository tourESRepository;
 
     public List<Tour> getAll() {
         return tourRepository.findAll();
@@ -115,6 +129,22 @@ public class TourService {
         }
 
         return results.stream().sorted(comparator).toList();
+    }
+
+    public List<TourDocument> searchToursWithElasticsearch(String search) {
+        String searchQuery = search;
+        NativeQuery query = NativeQuery.builder()
+                .withQuery(q -> q
+                        .multiMatch(m -> m
+                                .fields("title", "description", "start_location", "price")
+                                .query(searchQuery)
+                                .fuzziness("AUTO")))
+                .build();
+        SearchHits<TourDocument> productHits = elasticsearchOperations.search(query, TourDocument.class);
+
+        return productHits.stream()
+                .map(SearchHit::getContent)
+                .toList();
     }
 
     public Tour getById(Long id) {
@@ -201,6 +231,16 @@ public class TourService {
         } else {
             tour.setThumbnail(null);
         }
+
+        TourDocument doc = TourDocument.builder()
+                .id(tour.getId())
+                .title(tour.getTitle())
+                .price(tour.getPrice())
+                .description(tour.getDescription())
+                .start_location(tour.getStartLocation().getName())
+                .thumbnail(tour.getThumbnail())
+                .build();
+        tourESRepository.save(doc);
 
         return tourRepository.save(tour);
     }
@@ -300,4 +340,5 @@ public class TourService {
             }
         }
     }
+
 }

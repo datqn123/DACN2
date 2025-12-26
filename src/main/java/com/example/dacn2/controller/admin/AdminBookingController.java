@@ -5,6 +5,8 @@ import com.example.dacn2.dto.response.BookingResponse;
 import com.example.dacn2.entity.booking.BookingStatus;
 import com.example.dacn2.service.page.BookingService;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,7 +18,8 @@ import java.util.List;
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminBookingController {
 
-    private final BookingService bookingService;
+    @Autowired
+    private BookingService bookingService;
 
     @GetMapping
     public ApiResponse<List<BookingResponse>> getAll() {

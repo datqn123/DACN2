@@ -16,6 +16,7 @@ import com.example.dacn2.service.user_service.FileUploadService;
 
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -123,6 +124,7 @@ public class VoucherService {
                 .orElseThrow(() -> new RuntimeException("Voucher không tồn tại"));
     }
 
+    @Cacheable(value = "vouchersToHome", key = "#root.methodName")
     public List<VoucherCardResponse> getVouchersToHome() {
         Pageable pageable = PageRequest.of(0, 3);
         List<Voucher> vouchers = voucherRepository.get3VoucherForHome(pageable);
@@ -131,6 +133,7 @@ public class VoucherService {
                 .toList();
     }
 
+    @Cacheable(value = "vouchersToHotelPage", key = "#root.methodName")
     public List<VoucherCardResponse> getVoucherToHotelPage() {
         Pageable pageable = PageRequest.of(0, 5);
         List<Voucher> vouchers = voucherRepository.get5VoucherForHotelPage(pageable);
