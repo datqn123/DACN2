@@ -1,10 +1,12 @@
 package com.example.dacn2.Config;
 
+import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.protocol.HttpContext;
 import org.elasticsearch.client.RestClientBuilder;
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
+import org.apache.http.message.BasicHeader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.elasticsearch.client.ClientConfiguration;
@@ -56,18 +58,23 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
         }
 
         // Add Interceptor to force JSON headers and remove compatibility headers
-        // Add Interceptor to force JSON headers and remove compatibility headers
-        builder.withClientConfigurer((RestClientBuilder restClientBuilder) -> restClientBuilder
-                .setHttpClientConfigCallback((HttpAsyncClientBuilder httpClientBuilder) -> httpClientBuilder
-                        .addInterceptorLast((HttpRequestInterceptor) (request, context) -> {
-                            request.removeHeaders("Content-Type");
-                            request.removeHeaders("Accept");
-                            request.setHeader("Content-Type", "application/json");
-                            request.setHeader("Accept", "application/json");
-                            System.out.println(
-                                    "DEBUG: Forced Content-Type and Accept headers to application/json for URL: "
-                                            + request.getRequestLine().getUri());
-                        })));
+        builder.withClientConfigurer((RestClientBuilder restClientBuilder) -> {
+            restClientBuilder.setDefaultHeaders(new Header[] {
+                    new BasicHeader("Content-Type", "application/json"),
+                    new BasicHeader("Accept", "application/json")
+            });
+            return restClientBuilder
+                    .setHttpClientConfigCallback((HttpAsyncClientBuilder httpClientBuilder) -> httpClientBuilder
+                            .addInterceptorFirst((HttpRequestInterceptor) (request, context) -> {
+                                request.removeHeaders("Content-Type");
+                                request.removeHeaders("Accept");
+                                request.setHeader("Content-Type", "application/json");
+                                request.setHeader("Accept", "application/json");
+                                System.out.println(
+                                        "DEBUG: Forced Content-Type and Accept headers to application/json for URL: "
+                                                + request.getRequestLine().getUri());
+                            }));
+        });
         return builder.build();
     }
 }
