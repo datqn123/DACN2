@@ -1,12 +1,17 @@
 package com.example.dacn2.Config;
 
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpRequestInterceptor;
+import org.apache.http.protocol.HttpContext;
+import org.elasticsearch.client.RestClientBuilder;
+import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.elasticsearch.client.ClientConfiguration;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchConfiguration;
-import org.springframework.data.elasticsearch.support.HttpHeaders;
 import org.springframework.lang.NonNull;
 
+import java.io.IOException;
 import java.net.URI;
 
 @Configuration
@@ -50,11 +55,14 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
             }
         }
 
-        // Add custom headers to fix 406 Not Acceptable error
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Type", "application/json");
-        builder.withDefaultHeaders(headers);
-
+        // Add Interceptor to force JSON headers and remove compatibility headers
+        // Add Interceptor to force JSON headers and remove compatibility headers
+        builder.withClientConfigurer((RestClientBuilder restClientBuilder) -> restClientBuilder
+                .setHttpClientConfigCallback((HttpAsyncClientBuilder httpClientBuilder) -> httpClientBuilder
+                        .addInterceptorLast((HttpRequestInterceptor) (request, context) -> {
+                            request.setHeader("Content-Type", "application/json");
+                            request.setHeader("Accept", "application/json");
+                        })));
         return builder.build();
     }
 }
