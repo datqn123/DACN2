@@ -60,8 +60,13 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
         builder.withClientConfigurer((RestClientBuilder restClientBuilder) -> restClientBuilder
                 .setHttpClientConfigCallback((HttpAsyncClientBuilder httpClientBuilder) -> httpClientBuilder
                         .addInterceptorLast((HttpRequestInterceptor) (request, context) -> {
+                            request.removeHeaders("Content-Type");
+                            request.removeHeaders("Accept");
                             request.setHeader("Content-Type", "application/json");
                             request.setHeader("Accept", "application/json");
+                            System.out.println(
+                                    "DEBUG: Forced Content-Type and Accept headers to application/json for URL: "
+                                            + request.getRequestLine().getUri());
                         })));
         return builder.build();
     }
