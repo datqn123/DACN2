@@ -34,7 +34,7 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
             if ("https".equalsIgnoreCase(uri.getScheme())) {
                 port = 443;
             } else {
-                port = 9200; // Default HTTP
+                port = 9200;
             }
         }
 

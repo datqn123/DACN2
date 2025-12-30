@@ -89,7 +89,6 @@ public class FlightService {
     }
 
     // Lấy danh sách FlightCardResponse cho hiển thị
-    @Cacheable(value = "flightCards_page", key = "#limit")
     public List<FligthCardResponse> getFlightCardsForDisplay(int limit) {
         List<Flight> flights = getFlightsForCard(limit);
         return flights.stream()
@@ -124,7 +123,6 @@ public class FlightService {
                 .toList();
     }
 
-    // Lấy danh sách hạng ghế cho chuyến bay
     public List<FlightSeatResponse> getSeatClasses(Long flightId) {
         return flightRepository.getSeatClasses(flightId).stream()
                 .map(this::convertToSeatResponse)

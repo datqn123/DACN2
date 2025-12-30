@@ -46,6 +46,6 @@ public interface VoucherRepository extends JpaRepository<Voucher, Long> {
         @Query("SELECT v FROM Voucher v WHERE v.isActive = true and v.scope = 'FLIGHT_ONLY' ORDER BY v.createdAt DESC")
         List<Voucher> get5VoucherForFlightPage(Pageable pageable);
 
-        @Query("SELECT v FROM Voucher v WHERE v.isActive = true and v.scope = 'TOUR_ONLY' ORDER BY v.createdAt DESC")
+        @Query("SELECT v FROM Voucher v WHERE v.isActive = true and v.scope = 'TOUR_ONLY' or v.scope='GLOBAL' ORDER BY v.createdAt DESC")
         List<Voucher> get5VoucherForTourPage(Pageable pageable);
 }

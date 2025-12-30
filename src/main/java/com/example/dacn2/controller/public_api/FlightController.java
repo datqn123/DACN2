@@ -33,7 +33,6 @@ public class FlightController {
                                 .build();
         }
 
-        // Lấy danh sách chuyến bay sắp khởi hành (cho trang chủ)
         @GetMapping("/cards")
         public ApiResponse<List<FligthCardResponse>> getFlightCards(
                         @RequestParam(defaultValue = "5") int limit) {
@@ -43,7 +42,6 @@ public class FlightController {
                                 .build();
         }
 
-        // Tìm kiếm chuyến bay theo bộ lọc (tất cả params đều optional)
         @GetMapping("/search")
         public ApiResponse<List<FligthCardResponse>> searchFlights(
                         @RequestParam(required = false) Long departureLocationId,

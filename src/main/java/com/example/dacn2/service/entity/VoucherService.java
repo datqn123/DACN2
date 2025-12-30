@@ -16,7 +16,9 @@ import com.example.dacn2.service.user_service.FileUploadService;
 
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -49,6 +51,12 @@ public class VoucherService {
     }
 
     @Transactional
+    @Caching(put = {
+            @CachePut(value = "vouchersToHome", key = "#root.methodName"),
+            @CachePut(value = "vouchersToHotelPage", key = "#root.methodName"),
+            @CachePut(value = "vouchersToFlightPage", key = "#root.methodName"),
+            @CachePut(value = "vouchersToTourPage", key = "#root.methodName")
+    })
     public Voucher create(VoucherRequest request, MultipartFile image) throws IOException {
         if (request.getStartDate() == null) {
             throw new RuntimeException("Ngày bắt đầu (startDate) không được để trống");
@@ -64,14 +72,12 @@ public class VoucherService {
         mapRequestToEntity(request, voucher, image);
         Voucher savedVoucher = voucherRepository.save(voucher);
 
-        // --- GỬI THÔNG BÁO ---
         if (Boolean.TRUE.equals(request.getSendNotification())) {
             String title = request.getNotificationTitle() != null ? request.getNotificationTitle()
                     : "Voucher Mới!";
             String message = request.getNotificationMessage() != null ? request.getNotificationMessage()
                     : "Bạn ơi! Voucher " + savedVoucher.getName() + " vừa mới lên sóng. Săn ngay!";
 
-            // Link dẫn về trang danh sách voucher (hoặc chi tiết nếu có)
             String link = "/voucher";
 
             notificationService.sendPublicNotification(title, message, link);
@@ -81,6 +87,12 @@ public class VoucherService {
     }
 
     @Transactional
+    @Caching(put = {
+            @CachePut(value = "vouchersToHome", key = "#root.methodName"),
+            @CachePut(value = "vouchersToHotelPage", key = "#root.methodName"),
+            @CachePut(value = "vouchersToFlightPage", key = "#root.methodName"),
+            @CachePut(value = "vouchersToTourPage", key = "#root.methodName")
+    })
     public Voucher update(Long id, VoucherRequest request, MultipartFile image) throws IOException {
         Voucher voucher = voucherRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Voucher không tồn tại"));
@@ -92,7 +104,6 @@ public class VoucherService {
             throw new RuntimeException("Ngày kết thúc (endDate) không được để trống");
         }
 
-        // Nếu đổi code thì phải check trùng
         if (!voucher.getCode().equals(request.getCode()) && voucherRepository.existsByCode(request.getCode())) {
             throw new RuntimeException("Mã Voucher '" + request.getCode() + "' đã tồn tại!");
         }
@@ -100,7 +111,6 @@ public class VoucherService {
         mapRequestToEntity(request, voucher, image);
         Voucher savedVoucher = voucherRepository.save(voucher);
 
-        // --- GỬI THÔNG BÁO (NẾU CÓ) ---
         if (Boolean.TRUE.equals(request.getSendNotification())) {
             String title = request.getNotificationTitle() != null ? request.getNotificationTitle()
                     : "Cập nhật Voucher: " + savedVoucher.getName();
@@ -115,6 +125,12 @@ public class VoucherService {
     }
 
     @Transactional
+    @Caching(put = {
+            @CachePut(value = "vouchersToHome", key = "#root.methodName"),
+            @CachePut(value = "vouchersToHotelPage", key = "#root.methodName"),
+            @CachePut(value = "vouchersToFlightPage", key = "#root.methodName"),
+            @CachePut(value = "vouchersToTourPage", key = "#root.methodName")
+    })
     public void delete(Long id) {
         voucherRepository.deleteById(id);
     }
@@ -150,8 +166,9 @@ public class VoucherService {
                 .toList();
     }
 
+    @Cacheable(value = "vouchersToTourPage", key = "#root.methodName")
     public List<VoucherCardResponse> getVoucherToTourPage() {
-        Pageable pageable = PageRequest.of(0, 5);
+        Pageable pageable = PageRequest.of(0, 3);
         List<Voucher> vouchers = voucherRepository.get5VoucherForTourPage(pageable);
         return vouchers.stream()
                 .map(this::toCardResponse)
