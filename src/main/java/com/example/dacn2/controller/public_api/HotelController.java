@@ -6,6 +6,7 @@ import com.example.dacn2.dto.response.home.HotelCardResponse;
 import com.example.dacn2.dto.response.home.HotelSearchResponse;
 import com.example.dacn2.dto.response.home.LocationSearchResult;
 import com.example.dacn2.entity.hotel.Hotel;
+import com.example.dacn2.entity.hotel.HotelDocument;
 import com.example.dacn2.entity.hotel.HotelType;
 import com.example.dacn2.service.entity.HotelService;
 import com.example.dacn2.service.user_service.SearchHotelService;
@@ -48,6 +49,15 @@ public class HotelController {
                 return ApiResponse.<HotelSearchResponse>builder()
                                 .result(hotelService.getAllNavigate(page, size))
                                 .message("Lấy danh sách khách sạn thành công")
+                                .build();
+        }
+
+        @GetMapping("/search-hotel")
+        public ApiResponse<List<HotelDocument>> searchHotelWithElasticsearch(
+                        @RequestParam(required = false) String search) {
+                return ApiResponse.<List<HotelDocument>>builder()
+                                .result(hotelService.searchHotelWithEs(search))
+                                .message("Tìm kiếm khách sạn thành công")
                                 .build();
         }
 

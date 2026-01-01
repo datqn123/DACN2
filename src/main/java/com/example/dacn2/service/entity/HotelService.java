@@ -7,9 +7,12 @@ import com.example.dacn2.entity.hotel.HotelImage;
 import com.example.dacn2.entity.Location;
 import com.example.dacn2.entity.hotel.Amenity;
 import com.example.dacn2.entity.hotel.Hotel;
+import com.example.dacn2.entity.hotel.HotelDocument;
 import com.example.dacn2.entity.hotel.HotelView;
 import com.example.dacn2.entity.hotel.Room;
+import com.example.dacn2.entity.tour.TourDocument;
 import com.example.dacn2.repository.hotel.AmenityRepository;
+import com.example.dacn2.repository.hotel.HotelESRepository;
 import com.example.dacn2.repository.hotel.HotelRepository;
 import com.example.dacn2.repository.location.LocationInterfaceRepository; // Hoặc LocationRepository tùy tên bạn đặt
 import com.example.dacn2.service.user_service.FileUploadService;
@@ -21,8 +24,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.data.elasticsearch.core.SearchHit;
+import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -43,6 +50,10 @@ public class HotelService {
     private AmenityRepository amenityRepository;
     @Autowired
     private FileUploadService fileUploadService;
+    @Autowired
+    private HotelESRepository hotelESRepository;
+    @Autowired
+    private ElasticsearchOperations elasticsearchOperations;
 
     public List<Hotel> getAll() {
         return hotelRepository.findAll();
@@ -85,19 +96,26 @@ public class HotelService {
         }
 
         Hotel savedHotel = hotelRepository.save(hotel);
-        // Tự động cập nhật giá từ phòng rẻ nhất
         updateMinPriceFromRooms(savedHotel.getId());
         return savedHotel;
     }
 
+    public List<HotelDocument> searchHotelWithEs(String keyword) {
+        NativeQuery query = NativeQuery.builder()
+                .withQuery(q -> q
+                        .multiMatch(m -> m
+                                .fields("name", "description", "type")
+                                .query(keyword)
+                                .fuzziness("AUTO")))
+                .build();
+        SearchHits<HotelDocument> productHits = elasticsearchOperations.search(query, HotelDocument.class);
+        return productHits.stream().map(SearchHit::getContent).toList();
+    }
+
     @Transactional
     public Hotel update(Long id, HotelRequest request, List<MultipartFile> images) {
-        Hotel hotel = getById(id); // Tìm khách sạn cũ
-
-        // Map thông tin mới đè lên cũ
+        Hotel hotel = getById(id);
         mapBasicInfo(request, hotel);
-
-        // Xử lý ảnh (Thêm vào danh sách hiện có)
         try {
             processImages(request.getImageUrls(), images, hotel);
         } catch (IOException e) {
@@ -118,7 +136,6 @@ public class HotelService {
         hotelRepository.deleteById(id);
     }
 
-    // lấy hotel theo location
     @Cacheable(value = "hotelByLocation", key = "#locationId")
     public List<HotelCardResponse> getHotelByLocation(Long locationId) {
         return hotelRepository.findByLocationId(locationId);
@@ -136,12 +153,10 @@ public class HotelService {
             dto.setLocationName(hotel.getLocation().getName());
         }
 
-        // Lấy ảnh đầu tiên làm thumbnail
         if (hotel.getImages() != null && !hotel.getImages().isEmpty()) {
             dto.setThumbnail(hotel.getImages().get(0).getImageUrl());
         }
 
-        // Giá phòng thấp nhất
         dto.setMinPrice(hotel.getPricePerNightFrom());
 
         if (hotel.getType() != null) {
@@ -189,16 +204,13 @@ public class HotelService {
 
     private void processImages(List<String> urlLinks, List<MultipartFile> files, Hotel hotel) throws IOException {
 
-        // Lấy danh sách ảnh hiện tại (Nếu null thì tạo mới để tránh lỗi NullPointer)
         List<HotelImage> currentImages = hotel.getImages();
         if (currentImages == null) {
             currentImages = new ArrayList<>();
         }
 
-        // 1. Xử lý Link ảnh string (Copy paste)
         if (urlLinks != null && !urlLinks.isEmpty()) {
             for (String url : urlLinks) {
-                // Bỏ qua URL null hoặc rỗng
                 if (url == null || url.trim().isEmpty()) {
                     continue;
                 }
@@ -237,16 +249,11 @@ public class HotelService {
         hotel.setImages(currentImages);
     }
 
-    /**
-     * Tự động cập nhật pricePerNightFrom từ phòng có giá rẻ nhất
-     * Gọi method này sau khi tạo/update hotel hoặc khi rooms thay đổi
-     */
     @Transactional
     public void updateMinPriceFromRooms(Long hotelId) {
         Hotel hotel = hotelRepository.findById(hotelId)
                 .orElseThrow(() -> new RuntimeException("Hotel không tồn tại"));
 
-        // Tìm giá rẻ nhất từ danh sách phòng
         Double minPrice = hotel.getRooms() != null && !hotel.getRooms().isEmpty()
                 ? hotel.getRooms().stream()
                         .filter(room -> room.getPrice() != null && room.getPrice() > 0)
@@ -256,6 +263,15 @@ public class HotelService {
                 : null;
 
         hotel.setPricePerNightFrom(minPrice);
+        HotelDocument hotelDocument = HotelDocument.builder()
+                .id(hotel.getId())
+                .name(hotel.getName())
+                .description(hotel.getDescription())
+                .type(hotel.getType())
+                .pricePerNightFrom(hotel.getPricePerNightFrom())
+                .thumbnail(hotel.getImages().get(0).getImageUrl())
+                .build();
+        hotelESRepository.save(hotelDocument);
         hotelRepository.save(hotel);
     }
 }
